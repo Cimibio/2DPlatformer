@@ -5,20 +5,18 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private float _speed = 8f;
-    [SerializeField] private float _jumpForce = 12f;
+    [SerializeField] private float _speed = 4f;
+    [SerializeField] private float _jumpForce = 4f;
 
     private PlayerInputReader _inputReader;
     private Mover _mover;
     private FallDetector _fallDetector;
-    private PlayerAnimator _playerAnimator;
 
     private void Awake()
     {
         _inputReader = GetComponent<PlayerInputReader>();
         _mover = GetComponent<Mover>();
         _fallDetector = GetComponent<FallDetector>();
-        _playerAnimator = GetComponent<PlayerAnimator>();
     }
 
     private void Update()

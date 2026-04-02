@@ -7,9 +7,9 @@ public class PlayerAnimator : MonoBehaviour
     private Mover _mover;
     private Rigidbody2D _rigidbody;
 
-    private static readonly int IsRunning = Animator.StringToHash("isRunning");
+    private static readonly int SpeedX = Animator.StringToHash("speedX");
+    private static readonly int SpeedY = Animator.StringToHash("speedY");
     private static readonly int IsGrounded = Animator.StringToHash("isGrounded");
-    private static readonly int VerticalSpeed = Animator.StringToHash("verticalSpeed");
 
     private void Awake()
     {
@@ -20,9 +20,17 @@ public class PlayerAnimator : MonoBehaviour
 
     private void Update()
     {
-        // Обновляем параметры аниматора
-        _animator.SetBool(IsRunning, Mathf.Abs(_rigidbody.velocity.x) > 0.1f);
-        _animator.SetBool(IsGrounded, _mover.IsGrounded());
-        _animator.SetFloat(VerticalSpeed, _rigidbody.velocity.y);
+        // Получаем горизонтальную скорость
+        float horizontalSpeed = Mathf.Abs(_rigidbody.velocity.x);
+        float verticalSpeed = _rigidbody.velocity.y;
+        bool isGrounded = _mover.IsGrounded();
+
+        // Устанавливаем параметры для Blend Tree
+        _animator.SetFloat(SpeedX, horizontalSpeed);
+        _animator.SetFloat(SpeedY, isGrounded ? 0 : verticalSpeed);
+        _animator.SetBool(IsGrounded, isGrounded);
+
+        // Отладка (опционально)
+        // Debug.Log($"SpeedX: {horizontalSpeed}, SpeedY: {verticalSpeed}, Grounded: {isGrounded}");
     }
 }
