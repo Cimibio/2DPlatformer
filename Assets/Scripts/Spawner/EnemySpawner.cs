@@ -4,13 +4,14 @@ using UnityEngine;
 public class EnemySpawner : Spawner<Enemy>
 {
     [SerializeField] private SpawnPoint _spawnPoint;
+    [SerializeField] private Transform _patrolPoints;
 
     protected override void Spawn(Enemy enemy)
     {
         Vector3 spawnPointPosition = _spawnPoint.GetTransform.position;
 
         base.Spawn(enemy);
-
+        enemy.Init(_patrolPoints);
         //enemy.Falled += OnEnemyFall;
     }
 

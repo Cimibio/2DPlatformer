@@ -777,10 +777,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1953386421463260879, guid: 1279aee114107e74c80095a603d1fd90, type: 3}
-  _repeatRate: 1
+  _repeatRate: 10
   _poolCapacity: 20
   _poolMaxSize: 20
   _spawnPoint: {fileID: 735014504}
+  _patrolPoints: {fileID: 1242625270}
 --- !u!1 &356491715
 GameObject:
   m_ObjectHideFlags: 0
@@ -1458,7 +1459,7 @@ Transform:
   m_GameObject: {fileID: 735014502}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.15338, y: -0.493764, z: 0.21260184}
+  m_LocalPosition: {x: 2.65, y: -0.65, z: 0.21260184}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1654,7 +1655,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1242625270}
   m_Layer: 0
-  m_Name: WayPoints
+  m_Name: PatrolPoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1669,7 +1670,7 @@ Transform:
   m_GameObject: {fileID: 1242625269}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.44, y: -0.9, z: 0.21260184}
+  m_LocalPosition: {x: 14.15, y: -0.51, z: 0.21260184}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

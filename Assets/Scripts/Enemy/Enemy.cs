@@ -4,11 +4,11 @@ using UnityEngine;
 [RequireComponent(typeof(PatrolMover))]
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private Transform _wayPoints;
+    
 
     private PatrolMover _mover;
     private int _placeIndex = 0;
-    private Transform[] _places;
+    private Transform[] _points;
 
     //public event Action Falled;
 
@@ -23,15 +23,7 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
-        if (_wayPoints == null || _wayPoints.childCount == 0)
-            return;
-
-        _places = new Transform[_wayPoints.childCount];
-
-        for (int i = 0; i < _places.Length; i++)
-            _places[i] = _wayPoints.GetChild(i);
-
-        SendToCurrentPlace();
+        
     }
 
     private void OnDisable()
@@ -39,15 +31,28 @@ public class Enemy : MonoBehaviour
         _mover.PointReached -= GetNextPlace;
     }
 
+    public void Init(Transform _patrolPoints)
+    {
+        if (_patrolPoints == null || _patrolPoints.childCount == 0)
+            return;
+
+        _points = new Transform[_patrolPoints.childCount];
+
+        for (int i = 0; i < _points.Length; i++)
+            _points[i] = _patrolPoints.GetChild(i);
+
+        SendToCurrentPlace();
+    }
+
     private void GetNextPlace()
     {
-        _placeIndex = ++_placeIndex % _places.Length;
+        _placeIndex = ++_placeIndex % _points.Length;
         SendToCurrentPlace();
     }
 
     private void SendToCurrentPlace()
     {
-        if (_places.Length > 0)
-            _mover.SetMovePoint(_places[_placeIndex].position);
+        if (_points.Length > 0)
+            _mover.SetMovePoint(_points[_placeIndex].position);
     }
 }
