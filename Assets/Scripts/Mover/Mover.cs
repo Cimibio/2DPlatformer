@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -10,13 +11,14 @@ public class Mover : MonoBehaviour
     private Rigidbody2D _rigidbody;
     private bool _isFacingRight = true;
 
+    public event Action Flipped;
 
     private void Awake() => _rigidbody = GetComponent<Rigidbody2D>();
 
     public void Move(float direction, float speed)
     {
         _rigidbody.velocity = new Vector2(direction * speed, _rigidbody.velocity.y);
-        Flip(direction);
+        TurnAround(direction);
     }
 
     public void Jump(float force)
@@ -39,12 +41,16 @@ public class Mover : MonoBehaviour
         return raycastHit.collider != null;
     }
 
-    private void Flip(float direction)
+    private void TurnAround(float direction)
     {
-        if ((direction > 0 && !_isFacingRight) || (direction < 0 && _isFacingRight))
+        if (direction == 0) 
+            return;
+
+        if ((direction > 0) != _isFacingRight)
         {
             _isFacingRight = !_isFacingRight;
-            transform.Rotate(0f, 180f, 0f);
+            transform.rotation = Quaternion.Euler(0, _isFacingRight ? 0 : 180, 0);
+            Flipped?.Invoke();
         }
     }
 }

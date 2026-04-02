@@ -1037,9 +1037,6 @@ MonoBehaviour:
   _target: {fileID: 57997590}
   _offset: {x: 3, y: 2}
   _smoothSpeed: 5
-  _minBounds: {x: 0, y: 0}
-  _maxBounds: {x: 0, y: 0}
-  _useBounds: 0
 --- !u!1 &519910483
 GameObject:
   m_ObjectHideFlags: 0
