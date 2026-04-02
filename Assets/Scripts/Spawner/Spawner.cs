@@ -7,7 +7,7 @@ namespace Spawners
     public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     {
         [SerializeField] private T _prefab;
-        [SerializeField] private float _repeatRate = 1f;
+        [SerializeField] private float _repeatRate = 10f;
         [SerializeField] private int _poolCapacity = 20;
         [SerializeField] private int _poolMaxSize = 20;
 

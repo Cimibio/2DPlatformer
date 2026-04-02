@@ -8,9 +8,10 @@ public class EnemySpawner : Spawner<Enemy>
 
     protected override void Spawn(Enemy enemy)
     {
-        Vector3 spawnPointPosition = _spawnPoint.GetTransform.position;
-
         base.Spawn(enemy);
+        //Vector3 spawnPointPosition = _spawnPoint.GetTransform.position;
+        enemy.transform.position = _spawnPoint.GetTransform.position;
+
         enemy.Init(_patrolPoints);
         //enemy.Falled += OnEnemyFall;
     }

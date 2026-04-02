@@ -21,7 +21,7 @@ public class PatrolMover : MonoBehaviour
     public void SetMovePoint(Vector3 target)
     {
         _movePointPosition = target;
-        transform.forward = _movePointPosition - transform.position;
+        //transform.forward = _movePointPosition - transform.position;
     }
 
     private void Move()

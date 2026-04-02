@@ -4,8 +4,6 @@ using UnityEngine;
 [RequireComponent(typeof(PatrolMover))]
 public class Enemy : MonoBehaviour
 {
-    
-
     private PatrolMover _mover;
     private int _placeIndex = 0;
     private Transform[] _points;
@@ -16,14 +14,10 @@ public class Enemy : MonoBehaviour
     {
         _mover = GetComponent<PatrolMover>();
     }
+
     private void OnEnable()
     {
         _mover.PointReached += GetNextPlace;
-    }
-
-    private void Start()
-    {
-        
     }
 
     private void OnDisable()
