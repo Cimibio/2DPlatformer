@@ -20,17 +20,18 @@ public class PlayerAnimator : MonoBehaviour
 
     private void Update()
     {
-        // Получаем горизонтальную скорость
         float horizontalSpeed = Mathf.Abs(_rigidbody.velocity.x);
-        float verticalSpeed = _rigidbody.velocity.y;
+        float verticalVelocity = _rigidbody.velocity.y;
         bool isGrounded = _mover.IsGrounded();
 
-        // Устанавливаем параметры для Blend Tree
-        _animator.SetFloat(SpeedX, horizontalSpeed);
-        _animator.SetFloat(SpeedY, isGrounded ? 0 : verticalSpeed);
+        // В воздухе отключаем горизонтальную анимацию
+        float targetSpeedX = isGrounded ? horizontalSpeed : 0f;
+
+        _animator.SetFloat(SpeedX, targetSpeedX);
+        _animator.SetFloat(SpeedY, verticalVelocity);
         _animator.SetBool(IsGrounded, isGrounded);
 
-        // Отладка (опционально)
-        // Debug.Log($"SpeedX: {horizontalSpeed}, SpeedY: {verticalSpeed}, Grounded: {isGrounded}");
+        // Отладка
+        // Debug.Log($"SpeedX: {targetSpeedX:F2}, SpeedY: {verticalVelocity:F2}, IsGrounded: {isGrounded}");
     }
 }
