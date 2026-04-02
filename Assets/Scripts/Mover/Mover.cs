@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Mover : MonoBehaviour
 {
-    [SerializeField] private float _checkRadius = 0.2f;
+    [SerializeField] private float _checkRadius = 0.1f;
     [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private CapsuleCollider2D _collider;
 
@@ -18,6 +18,7 @@ public class Mover : MonoBehaviour
     public void Move(float direction, float speed)
     {
         _rigidbody.velocity = new Vector2(direction * speed, _rigidbody.velocity.y);
+
         TurnAround(direction);
     }
 
@@ -31,12 +32,11 @@ public class Mover : MonoBehaviour
 
     public bool IsGrounded()
     {
-        float extraHeight = 0.1f;
         RaycastHit2D raycastHit = Physics2D.Raycast(_collider.bounds.center, Vector2.down,
-            _collider.bounds.extents.y + extraHeight, _groundLayer);
+            _collider.bounds.extents.y + _checkRadius, _groundLayer);
 
         Color rayColor = raycastHit.collider != null ? Color.green : Color.red;
-        Debug.DrawRay(_collider.bounds.center, Vector2.down * (_collider.bounds.extents.y + extraHeight), rayColor);
+        Debug.DrawRay(_collider.bounds.center, Vector2.down * (_collider.bounds.extents.y + _checkRadius), rayColor);
 
         return raycastHit.collider != null;
     }

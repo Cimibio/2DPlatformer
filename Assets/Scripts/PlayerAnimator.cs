@@ -7,9 +7,9 @@ public class PlayerAnimator : MonoBehaviour
     private Mover _mover;
     private Rigidbody2D _rigidbody;
 
-    private static readonly int SpeedX = Animator.StringToHash("speedX");
-    private static readonly int SpeedY = Animator.StringToHash("speedY");
-    private static readonly int IsGrounded = Animator.StringToHash("isGrounded");
+    private readonly int _speedXHash = Animator.StringToHash("speedX");
+    private readonly int _speedYHash = Animator.StringToHash("speedY");
+    private readonly int _isGroundedHash = Animator.StringToHash("isGrounded");
 
     private void Awake()
     {
@@ -24,14 +24,10 @@ public class PlayerAnimator : MonoBehaviour
         float verticalVelocity = _rigidbody.velocity.y;
         bool isGrounded = _mover.IsGrounded();
 
-        // В воздухе отключаем горизонтальную анимацию
         float targetSpeedX = isGrounded ? horizontalSpeed : 0f;
 
-        _animator.SetFloat(SpeedX, targetSpeedX);
-        _animator.SetFloat(SpeedY, verticalVelocity);
-        _animator.SetBool(IsGrounded, isGrounded);
-
-        // Отладка
-        // Debug.Log($"SpeedX: {targetSpeedX:F2}, SpeedY: {verticalVelocity:F2}, IsGrounded: {isGrounded}");
+        _animator.SetFloat(_speedXHash, targetSpeedX);
+        _animator.SetFloat(_speedYHash, verticalVelocity);
+        _animator.SetBool(_isGroundedHash, isGrounded);
     }
 }

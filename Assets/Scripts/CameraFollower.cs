@@ -1,21 +1,18 @@
 using UnityEngine;
 
-[RequireComponent (typeof(Camera))]
+[RequireComponent(typeof(Camera))]
 public class CameraFollower : MonoBehaviour
 {
     [SerializeField] private Transform _target;
     [SerializeField] private Vector2 _offset = Vector2.zero;
     [SerializeField] private float _smoothSpeed = 5f;
-
-    //[Header("Bounds")]
-    //[SerializeField] private Vector2 _minBounds;
-    //[SerializeField] private Vector2 _maxBounds;
-    //[SerializeField] private bool _useBounds = true;
+    [SerializeField] private float _zOffset = -10f;
 
     private Mover _mover;
     private Camera _camera;
-    private float _halfHeight;
-    private float _halfWidth;
+    //private float _halfHeight;
+    //private float _halfWidth;
+    private Vector3 _velocity = Vector3.zero;
 
     private void Awake()
     {
@@ -27,12 +24,9 @@ public class CameraFollower : MonoBehaviour
     {
         if (_camera != null)
         {
-            _halfHeight = _camera.orthographicSize;
-            _halfWidth = _halfHeight * _camera.aspect;
+            //_halfHeight = _camera.orthographicSize;
+            //_halfWidth = _halfHeight * _camera.aspect;
         }
-
-        //UpdateCameraSize();
-        //AutoDetectBounds();
     }
 
     private void OnEnable()
@@ -41,29 +35,14 @@ public class CameraFollower : MonoBehaviour
             _mover.Flipped += InvertOffset;
     }
 
-
-    private void LateUpdate()
+    private void FixedUpdate()
     {
-        if (_target == null) 
-            return;
+        if (_target == null) return;
 
-        Vector2 targetPosition = (Vector2)_target.position + _offset;
+        Vector3 targetPosition = new Vector3(_target.position.x + _offset.x, _target.position.y + _offset.y,
+                                             _zOffset);
 
-        // Ограничения
-        //if (_useBounds)
-        //{
-        //    float minX = _minBounds.x + _halfWidth;
-        //    float maxX = _maxBounds.x - _halfWidth;
-        //    float minY = _minBounds.y + _halfHeight;
-        //    float maxY = _maxBounds.y - _halfHeight;
-
-        //    targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
-        //    targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
-        //}
-
-        // Плавное движение
-        Vector2 newPosition = new Vector2(targetPosition.x, targetPosition.y);
-        transform.position = Vector2.Lerp(transform.position, newPosition, _smoothSpeed * Time.deltaTime);
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref _velocity, 1f / _smoothSpeed);
     }
     private void OnDisable()
     {
@@ -71,48 +50,8 @@ public class CameraFollower : MonoBehaviour
             _mover.Flipped -= InvertOffset;
     }
 
-    //private void OnDrawGizmosSelected()
-    //{
-    //    if (_useBounds)
-    //    {
-    //        Gizmos.color = Color.green;
-    //        Vector2 center = new Vector2((_minBounds.x + _maxBounds.x) / 2, (_minBounds.y + _maxBounds.y) / 2);
-    //        Vector2 size = new Vector2(_maxBounds.x - _minBounds.x, _maxBounds.y - _minBounds.y);
-    //        Gizmos.DrawWireCube(center, size);
-    //    }
-    //}
-
     private void InvertOffset()
     {
         _offset.x = -_offset.x;
     }
-
-    //private void AutoDetectBounds()
-    //{
-    //    // Ищем объект с тегом "Level" или "Ground"
-    //    GameObject level = GameObject.FindGameObjectWithTag("Level");
-    //    if (level == null) 
-    //        level = GameObject.FindGameObjectWithTag("Ground");
-
-    //    if (level != null)
-    //    {
-    //        Collider2D[] colliders = level.GetComponentsInChildren<Collider2D>();
-
-    //        if (colliders.Length > 0)
-    //        {
-    //            Bounds bounds = colliders[0].bounds;
-
-    //            for (int i = 1; i < colliders.Length; i++)
-    //            {
-    //                bounds.Encapsulate(colliders[i].bounds);
-    //            }
-
-    //            _minBounds = bounds.min;
-    //            _maxBounds = bounds.max;
-    //            _useBounds = true;
-
-    //            Debug.Log($"Camera bounds set to: Min={_minBounds}, Max={_maxBounds}");
-    //        }
-    //    }
-    //}
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerInputReader), typeof(Mover), typeof(FallDetector))]
-[RequireComponent (typeof(PlayerAnimator))]
+[RequireComponent(typeof(PlayerAnimator))]
 public class Player : MonoBehaviour
 {
     [Header("Settings")]
@@ -19,13 +19,14 @@ public class Player : MonoBehaviour
         _fallDetector = GetComponent<FallDetector>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         _mover.Move(_inputReader.HorizontalInput, _speed);
+    }
 
+    private void Update()
+    {
         if (_inputReader.IsJumpPressed)
-        {
             _mover.Jump(_jumpForce);
-        }
     }
 }
