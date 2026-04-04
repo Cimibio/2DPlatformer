@@ -25,11 +25,13 @@ namespace Spawners
                 collectionCheck: true,
                 defaultCapacity: _poolCapacity,
                 maxSize: _poolMaxSize
-            );            
+            );
+            Debug.Log("Spawner awaked, Pool created");
         }
 
-        private void Start()
+        protected virtual void Start()
         {
+            Debug.Log("Spawner started");
             StartSpawning();
         }
 
@@ -56,15 +58,9 @@ namespace Spawners
         {
             obj.gameObject.SetActive(true);
         }
-
-        private void StartSpawning()
+        protected void StopSpawning()
         {
-            if (_spawnCoroutine == null)
-                _spawnCoroutine = StartCoroutine(SpawnRoutine());
-        }
-
-        private void StopSpawning()
-        {
+            Debug.Log("Stoping spawning");
             if (_spawnCoroutine != null)
             {
                 _isSpawning = false;
@@ -73,8 +69,17 @@ namespace Spawners
             }
         }
 
+        private void StartSpawning()
+        {
+            Debug.Log("Starting spawning");
+            if (_spawnCoroutine == null)
+                _spawnCoroutine = StartCoroutine(SpawnRoutine());
+        }
+
+
         private IEnumerator SpawnRoutine()
         {
+            Debug.Log("Spawn coroutine started");
             var wait = new WaitForSeconds(_repeatRate);
 
             while (_isSpawning)

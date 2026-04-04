@@ -1,52 +1,63 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(PatrolMover))]
+[RequireComponent(typeof(PatrolMover), typeof(FallDetector))]
 public class Enemy : MonoBehaviour
 {
     private PatrolMover _mover;
     private int _placeIndex = 0;
-    private Transform[] _points;
+    private List<Transform> _patrolPoints = new List<Transform>();
+    private FallDetector _fallDetector;
 
-    //public event Action Falled;
+    public event Action<Enemy> Falled;
 
     private void Awake()
     {
         _mover = GetComponent<PatrolMover>();
+        _fallDetector = GetComponent<FallDetector>();
     }
 
     private void OnEnable()
     {
         _mover.PointReached += GetNextPlace;
+        _fallDetector.Falled += Falling;
     }
 
     private void OnDisable()
     {
         _mover.PointReached -= GetNextPlace;
+        _fallDetector.Falled -= Falling;
     }
 
-    public void Init(Transform _patrolPoints)
+    public void Init(IReadOnlyList<Transform> patrolPoints)
     {
-        if (_patrolPoints == null || _patrolPoints.childCount == 0)
+        if (_patrolPoints == null || _patrolPoints.Count == 0)
             return;
 
-        _points = new Transform[_patrolPoints.childCount];
+        _patrolPoints.Clear();
+        _placeIndex = 0;
 
-        for (int i = 0; i < _points.Length; i++)
-            _points[i] = _patrolPoints.GetChild(i);
+        foreach (var item in patrolPoints)
+            _patrolPoints.Add(item);
 
         SendToCurrentPlace();
     }
 
+    private void Falling()
+    {
+        Falled?.Invoke(this);
+    }
+
     private void GetNextPlace()
     {
-        _placeIndex = ++_placeIndex % _points.Length;
+        _placeIndex = ++_placeIndex % _patrolPoints.Count;
         SendToCurrentPlace();
     }
 
     private void SendToCurrentPlace()
     {
-        if (_points.Length > 0)
-            _mover.SetMovePoint(_points[_placeIndex].position);
+        if (_patrolPoints.Count > 0)
+            _mover.SetMovePoint(_patrolPoints[_placeIndex].position);
     }
 }
