@@ -3,16 +3,16 @@ using UnityEngine;
 
 public class CrystalSpawner : Spawner<Crystal>
 {
-    [SerializeField] private SpawnPoints _spawnPoints;
+    [SerializeField] private CrystalSpawnPoints _spawnPoints;
 
-    private SpawnPoint[] _points;
+    private CrystalSpawnPoint[] _points;
 
     protected override void Start()
     {
         if (_spawnPoints == null || _spawnPoints.Points.Count == 0)
             return;
 
-        _points = new SpawnPoint[_spawnPoints.Points.Count];
+        _points = new CrystalSpawnPoint[_spawnPoints.Points.Count];
 
         for (int i = 0; i < _points.Length; i++)
             _points[i] = _spawnPoints.Points[i];
@@ -21,9 +21,9 @@ public class CrystalSpawner : Spawner<Crystal>
         SpawnAllCrystal();
     }
 
-    protected override void Spawn(Crystal Crystal)
+    protected override void Spawn(Crystal crystal)
     {
-        base.Spawn(Crystal);
+        base.Spawn(crystal);
     }
 
     protected override void Despawn(Crystal crystal)
@@ -44,5 +44,4 @@ public class CrystalSpawner : Spawner<Crystal>
             Debug.Log($"Enemy spawned at {_points[i].name}");
         }
     }
-
 }

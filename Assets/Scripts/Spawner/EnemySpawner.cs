@@ -3,16 +3,16 @@ using UnityEngine;
 
 public class EnemySpawner : Spawner<Enemy>
 {
-    [SerializeField] private SpawnPoints _spawnPoints;
+    [SerializeField] private EnemySpawnPoints _spawnPoints;
 
-    private SpawnPoint[] _points;
+    private EnemySpawnPoint[] _points;
 
     protected override void Start()
     {
         if (_spawnPoints == null || _spawnPoints.Points.Count == 0)
             return;
 
-        _points = new SpawnPoint[_spawnPoints.Points.Count];
+        _points = new EnemySpawnPoint[_spawnPoints.Points.Count];
 
         for (int i = 0; i < _points.Length; i++)
             _points[i] = _spawnPoints.Points[i];
@@ -23,17 +23,6 @@ public class EnemySpawner : Spawner<Enemy>
 
     protected override void Spawn(Enemy enemy)
     {
-        //for (int i = 0; i < _points.Length; i++)
-        //{
-        //    base.Spawn(enemy);
-        //    enemy.transform.position = _points[i].transform.position;
-
-        //    enemy.Init(_points[i].PatrolPoints);
-
-        //    Debug.Log($"Enemy spawned at Spawn Point {i}");
-        //    enemy.Falled += OnEnemyFall;
-        //}
-
         base.Spawn(enemy);
     }
 
