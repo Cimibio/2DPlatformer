@@ -18,23 +18,37 @@ public class EnemySpawner : Spawner<Enemy>
             _points[i] = _spawnPoints.Points[i];
 
         Debug.Log($"Enemy Spawner Started, created {_points.Length} spawn points");
-        base.Start();
+        SpawnAllEnemies();
     }
 
     protected override void Spawn(Enemy enemy)
     {
+        //for (int i = 0; i < _points.Length; i++)
+        //{
+        //    base.Spawn(enemy);
+        //    enemy.transform.position = _points[i].transform.position;
+
+        //    enemy.Init(_points[i].PatrolPoints);
+
+        //    Debug.Log($"Enemy spawned at Spawn Point {i}");
+        //    enemy.Falled += OnEnemyFall;
+        //}
+
+        base.Spawn(enemy);
+    }
+
+    private void SpawnAllEnemies()
+    {
         for (int i = 0; i < _points.Length; i++)
         {
-            base.Spawn(enemy);
+            Enemy enemy = Pool.Get();
+
             enemy.transform.position = _points[i].transform.position;
-
             enemy.Init(_points[i].PatrolPoints);
-
-            Debug.Log($"Enemy spawned at Spawn Point {i}");
             enemy.Falled += OnEnemyFall;
-        }
 
-        StopSpawning();
+            Debug.Log($"Enemy spawned at {_points[i].name}");
+        }
     }
 
     private void OnEnemyFall(Enemy enemy)

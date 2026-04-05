@@ -6,7 +6,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     private PatrolMover _mover;
-    private int _placeIndex = 0;
+    private int _patrolPointIndex = 0;
     private List<Transform> _patrolPoints = new List<Transform>();
     private FallDetector _fallDetector;
 
@@ -32,11 +32,11 @@ public class Enemy : MonoBehaviour
 
     public void Init(IReadOnlyList<Transform> patrolPoints)
     {
-        if (_patrolPoints == null || _patrolPoints.Count == 0)
+        if (patrolPoints == null || patrolPoints.Count == 0)
             return;
 
         _patrolPoints.Clear();
-        _placeIndex = 0;
+        _patrolPointIndex = 0;
 
         foreach (var item in patrolPoints)
             _patrolPoints.Add(item);
@@ -51,13 +51,13 @@ public class Enemy : MonoBehaviour
 
     private void GetNextPlace()
     {
-        _placeIndex = ++_placeIndex % _patrolPoints.Count;
+        _patrolPointIndex = ++_patrolPointIndex % _patrolPoints.Count;
         SendToCurrentPlace();
     }
 
     private void SendToCurrentPlace()
     {
         if (_patrolPoints.Count > 0)
-            _mover.SetMovePoint(_patrolPoints[_placeIndex].position);
+            _mover.SetMovePoint(_patrolPoints[_patrolPointIndex].position);
     }
 }

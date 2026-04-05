@@ -6,7 +6,7 @@ public class PatrolMover : MonoBehaviour
     [SerializeField] private float _speed = 4f;
 
     private Vector3 _movePointPosition;
-    private float _minDistance = 0.1f;
+    private float _minDistance = 0.2f;
 
     public event Action PointReached;
 
