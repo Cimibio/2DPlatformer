@@ -19,8 +19,10 @@ public class CollideDetector : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collider)
     {
         if (collider.TryGetComponent<Player>(out _))
+        {
             Collided?.Invoke();
-
-        Debug.Log($"Detector detect collision with {collider.gameObject.name}");
+            //_collider.isTrigger = false;
+            Debug.Log($"Detector detect collision with {collider.gameObject.name}");
+        }
     }
 }

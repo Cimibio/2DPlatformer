@@ -1,31 +1,48 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(CircleCollider2D), typeof(CollideDetector))]
+[RequireComponent(typeof(CircleCollider2D), typeof(CollideDetector), typeof(CrystalAnimator))]
 public class Crystal : MonoBehaviour
 {
     private CollideDetector _collideDetector;
+    private CrystalAnimator _crystalAnimator;
+    //private CircleCollider2D _collider;
+    private bool _isCollected = false;
 
     public event Action<Crystal> Collected;
 
     private void Awake()
     {
-        _collideDetector = GetComponent<CollideDetector>();        
+        _collideDetector = GetComponent<CollideDetector>(); 
+        _crystalAnimator = GetComponent<CrystalAnimator>();
     }
 
     private void OnEnable()
     {
         _collideDetector.Collided += Collect;
+        _crystalAnimator.CollectionAnimationCompleted += OnCollectionAnimationCompleted;
     }
 
     private void OnDisable()
     {
-        _collideDetector.Collided -= Collect;
+        _collideDetector.Collided -= Collect; 
+        _crystalAnimator.CollectionAnimationCompleted -= OnCollectionAnimationCompleted;
+    }
+
+    private void OnCollectionAnimationCompleted()
+    {
+        Collected?.Invoke(this);
     }
 
     private void Collect()
     {
-        Debug.Log($"Crystal detect collision with player");
-        Collected?.Invoke(this);
+        _isCollected = true;
+        _crystalAnimator.PlayDisapearAnimation();
+    }
+
+    public void ResetState()
+    {
+        _isCollected = false;
+        _crystalAnimator.ResetToIdle();
     }
 }

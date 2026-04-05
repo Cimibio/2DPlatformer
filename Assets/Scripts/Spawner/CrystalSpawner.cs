@@ -38,6 +38,7 @@ public class CrystalSpawner : Spawner<Crystal>
         for (int i = 0; i < _points.Length; i++)
         {
             Crystal crystal = Pool.Get();
+            crystal.ResetState();
 
             crystal.transform.position = _points[i].transform.position;
             crystal.Collected += OnCollected;
