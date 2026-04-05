@@ -26,9 +26,10 @@ public class CrystalSpawner : Spawner<Crystal>
         base.Spawn(crystal);
     }
 
-    protected override void Despawn(Crystal crystal)
+   private void OnCollected(Crystal crystal)
     {
-        crystal.Collected -= Despawn;
+        Debug.Log($"Despawning crystal {this.name}");
+        crystal.Collected -= OnCollected;
         ReleaseToPool(crystal);
     }
 
@@ -39,7 +40,7 @@ public class CrystalSpawner : Spawner<Crystal>
             Crystal crystal = Pool.Get();
 
             crystal.transform.position = _points[i].transform.position;
-            crystal.Collected += Despawn;
+            crystal.Collected += OnCollected;
 
             Debug.Log($"Enemy spawned at {_points[i].name}");
         }
