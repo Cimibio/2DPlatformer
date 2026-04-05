@@ -21,7 +21,6 @@ public class CollideDetector : MonoBehaviour
         if (collider.TryGetComponent<Player>(out _))
         {
             Collided?.Invoke();
-            //_collider.isTrigger = false;
             Debug.Log($"Detector detect collision with {collider.gameObject.name}");
         }
     }

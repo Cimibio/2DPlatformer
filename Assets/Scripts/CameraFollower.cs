@@ -10,8 +10,6 @@ public class CameraFollower : MonoBehaviour
 
     private Mover _mover;
     private Camera _camera;
-    //private float _halfHeight;
-    //private float _halfWidth;
     private Vector3 _velocity = Vector3.zero;
 
     private void Awake()
@@ -20,19 +18,10 @@ public class CameraFollower : MonoBehaviour
         _camera = GetComponent<Camera>();
     }
 
-    private void Start()
-    {
-        if (_camera != null)
-        {
-            //_halfHeight = _camera.orthographicSize;
-            //_halfWidth = _halfHeight * _camera.aspect;
-        }
-    }
-
     private void OnEnable()
     {
         if (_mover != null)
-            _mover.Flipped += InvertOffset;
+            _mover.Flipped += InvertXOffset;
     }
 
     private void FixedUpdate()
@@ -47,10 +36,10 @@ public class CameraFollower : MonoBehaviour
     private void OnDisable()
     {
         if (_mover != null)
-            _mover.Flipped -= InvertOffset;
+            _mover.Flipped -= InvertXOffset;
     }
 
-    private void InvertOffset()
+    private void InvertXOffset()
     {
         _offset.x = -_offset.x;
     }

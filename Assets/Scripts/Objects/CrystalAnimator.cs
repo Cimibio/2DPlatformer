@@ -18,7 +18,7 @@ public class CrystalAnimator : MonoBehaviour
         _animator.SetTrigger(_animationDisapear);
     }
 
-    public void OnCollectionAnimationComplete()
+    public void NotifyDisapearAnimationComplete()
     {
         Debug.Log($"CrystalAnimator: Collection animation completed on {gameObject.name}");
         CollectionAnimationCompleted?.Invoke();

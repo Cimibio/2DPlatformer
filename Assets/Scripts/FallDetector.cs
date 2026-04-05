@@ -10,8 +10,6 @@ public class FallDetector : MonoBehaviour
     private void Update()
     {
         if (transform.position.y < _fallThreshold)
-        {
             Falled?.Invoke();
-        }
     }
 }

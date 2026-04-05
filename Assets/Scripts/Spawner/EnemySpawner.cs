@@ -21,11 +21,6 @@ public class EnemySpawner : Spawner<Enemy>
         SpawnAllEnemies();
     }
 
-    protected override void Spawn(Enemy enemy)
-    {
-        base.Spawn(enemy);
-    }
-
     private void SpawnAllEnemies()
     {
         for (int i = 0; i < _points.Length; i++)
@@ -34,15 +29,15 @@ public class EnemySpawner : Spawner<Enemy>
 
             enemy.transform.position = _points[i].transform.position;
             enemy.Init(_points[i].PatrolPoints);
-            enemy.Falled += OnEnemyFall;
+            enemy.Falled += Fall;
 
             Debug.Log($"Enemy spawned at {_points[i].name}");
         }
     }
 
-    private void OnEnemyFall(Enemy enemy)
+    private void Fall(Enemy enemy)
     {
-        enemy.Falled -= OnEnemyFall;
+        enemy.Falled -= Fall;
         ReleaseToPool(enemy);
     }
 }

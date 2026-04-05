@@ -21,15 +21,10 @@ public class CrystalSpawner : Spawner<Crystal>
         SpawnAllCrystal();
     }
 
-    protected override void Spawn(Crystal crystal)
-    {
-        base.Spawn(crystal);
-    }
-
-   private void OnCollected(Crystal crystal)
+    private void Collect(Crystal crystal)
     {
         Debug.Log($"Despawning crystal {this.name}");
-        crystal.Collected -= OnCollected;
+        crystal.Collected -= Collect;
         ReleaseToPool(crystal);
     }
 
@@ -38,12 +33,12 @@ public class CrystalSpawner : Spawner<Crystal>
         for (int i = 0; i < _points.Length; i++)
         {
             Crystal crystal = Pool.Get();
-            crystal.ResetState();
+            crystal.Init();
 
             crystal.transform.position = _points[i].transform.position;
-            crystal.Collected += OnCollected;
+            crystal.Collected += Collect;
 
-            Debug.Log($"Enemy spawned at {_points[i].name}");
+            Debug.Log($"Crystal spawned at {_points[i].name}");
         }
     }
 }

@@ -6,8 +6,6 @@ public class Crystal : MonoBehaviour
 {
     private CollideDetector _collideDetector;
     private CrystalAnimator _crystalAnimator;
-    //private CircleCollider2D _collider;
-    private bool _isCollected = false;
 
     public event Action<Crystal> Collected;
 
@@ -20,29 +18,27 @@ public class Crystal : MonoBehaviour
     private void OnEnable()
     {
         _collideDetector.Collided += Collect;
-        _crystalAnimator.CollectionAnimationCompleted += OnCollectionAnimationCompleted;
+        _crystalAnimator.CollectionAnimationCompleted += NotifyItemCollection;
     }
 
     private void OnDisable()
     {
         _collideDetector.Collided -= Collect; 
-        _crystalAnimator.CollectionAnimationCompleted -= OnCollectionAnimationCompleted;
+        _crystalAnimator.CollectionAnimationCompleted -= NotifyItemCollection;
     }
 
-    private void OnCollectionAnimationCompleted()
+    public void Init()
+    {
+        _crystalAnimator.ResetToIdle();
+    }
+
+    private void NotifyItemCollection()
     {
         Collected?.Invoke(this);
     }
 
     private void Collect()
     {
-        _isCollected = true;
         _crystalAnimator.PlayDisapearAnimation();
-    }
-
-    public void ResetState()
-    {
-        _isCollected = false;
-        _crystalAnimator.ResetToIdle();
     }
 }
