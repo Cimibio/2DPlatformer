@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CrystalSpawnPoints : MonoBehaviour
+public class CrystalSpawnPoints : MonoBehaviour, ISpawnPointsContainer<CrystalSpawnPoint>
 {
     [SerializeField] private List<CrystalSpawnPoint> _spawnPoints;
 

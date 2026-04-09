@@ -11,7 +11,7 @@ namespace Spawners
 
         protected ObjectPool<T> Pool;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             Pool = new ObjectPool<T>(
                 createFunc: () => Instantiate(_prefab),

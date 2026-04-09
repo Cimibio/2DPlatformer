@@ -876,10 +876,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1953386421463260879, guid: 1279aee114107e74c80095a603d1fd90, type: 3}
-  _repeatRate: 10
   _poolCapacity: 20
   _poolMaxSize: 20
-  _spawnPoints: {fileID: 1754509189}
+  _spawnPointsContainer: {fileID: 1754509189}
 --- !u!1 &356491715
 GameObject:
   m_ObjectHideFlags: 0
@@ -1066,10 +1065,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1408226313778165636, guid: cb4f6414c47a12c4590d812710e0e044, type: 3}
-  _repeatRate: 10
   _poolCapacity: 20
   _poolMaxSize: 20
-  _spawnPoints: {fileID: 640770618}
+  _spawnPointsContainer: {fileID: 640770618}
 --- !u!4 &506716544
 Transform:
   m_ObjectHideFlags: 0

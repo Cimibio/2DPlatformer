@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemySpawnPoint : MonoBehaviour
+public class EnemySpawnPoint : MonoBehaviour, ISpawnPoint
 {
     [SerializeField] private Transform _route;
 
@@ -12,7 +12,6 @@ public class EnemySpawnPoint : MonoBehaviour
     private void Awake()
     {
         LoadPatrolPoints();
-        Debug.Log($"Loaded {_patrolPoints.Count} points");
     }
 
     public void Init(Vector3 position)
