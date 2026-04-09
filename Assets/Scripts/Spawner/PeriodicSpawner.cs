@@ -15,6 +15,7 @@ namespace Spawners
         private ISpawnPointsContainer<TPoint> _container;
         private Coroutine _spawnCoroutine;
         private WaitForSeconds _waitInterval;
+        private bool _isSpawning = false;
 
         protected override void Awake()
         {
@@ -48,6 +49,7 @@ namespace Spawners
             if (_spawnCoroutine != null)
                 StopCoroutine(_spawnCoroutine);
 
+            _isSpawning = true;
             _spawnCoroutine = StartCoroutine(SpawnRoutine());
         }
 
@@ -55,6 +57,7 @@ namespace Spawners
         {
             if (_spawnCoroutine != null)
             {
+                _isSpawning = false;
                 StopCoroutine(_spawnCoroutine);
                 _spawnCoroutine = null;
             }
@@ -62,7 +65,7 @@ namespace Spawners
 
         private IEnumerator SpawnRoutine()
         {
-            while (true)
+            while (_isSpawning)
             {
                 yield return _waitInterval;
                 SpawnOne();
