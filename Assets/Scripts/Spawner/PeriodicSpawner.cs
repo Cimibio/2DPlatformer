@@ -14,10 +14,12 @@ namespace Spawners
 
         private ISpawnPointsContainer<TPoint> _container;
         private Coroutine _spawnCoroutine;
+        private WaitForSeconds _waitInterval;
 
         protected override void Awake()
         {
             base.Awake();
+            _waitInterval = new WaitForSeconds(_spawnInterval);
 
             if (_spawnPointsContainer == null)
             {
@@ -62,7 +64,7 @@ namespace Spawners
         {
             while (true)
             {
-                yield return new WaitForSeconds(_spawnInterval);
+                yield return _waitInterval;
                 SpawnOne();
             }
         }
@@ -84,7 +86,6 @@ namespace Spawners
             }
             else
             {
-                // ÷иклический перебор точек
                 spawnPoint = GetNextPoint();
             }
 
@@ -94,7 +95,6 @@ namespace Spawners
 
         protected virtual TPoint GetNextPoint()
         {
-            // ћожно переопределить дл€ своей логики выбора точки
             return _container.Points[0];
         }
 
