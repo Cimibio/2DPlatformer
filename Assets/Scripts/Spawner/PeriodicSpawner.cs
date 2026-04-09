@@ -3,104 +3,105 @@ using UnityEngine;
 
 namespace Spawners
 {
-    public abstract class PeriodicSpawner<TItem, TPoint> : Spawner<TItem>
+    public abstract class PeriodicSpawner<TItem, TPoint> : OneTimeSpawner<TItem, TPoint>
         where TItem : MonoBehaviour
         where TPoint : class, ISpawnPoint
     {
-        [SerializeField] private MonoBehaviour _spawnPointsContainer;
-        [SerializeField] private float _spawnInterval = 5f;
-        [SerializeField] private bool _spawnOnStart = true;
-        [SerializeField] private bool _randomPoint = false;
+        [SerializeField] private float _respawnInterval = 5f;
+        [SerializeField] private bool _respawnOnPickup = true;
+        [SerializeField] private bool _randomPointOnRespawn = false;
 
-        private ISpawnPointsContainer<TPoint> _container;
-        private Coroutine _spawnCoroutine;
-        private WaitForSeconds _waitInterval;
-        private bool _isSpawning = false;
+        private WaitForSeconds _respawnWaitInterval;
+        private bool _isRespawning = false;
 
         protected override void Awake()
         {
             base.Awake();
-            _waitInterval = new WaitForSeconds(_spawnInterval);
-
-            if (_spawnPointsContainer == null)
-            {
-                Debug.LogError($"Spawn points container not assigned to {gameObject.name}");
-                return;
-            }
-
-            _container = _spawnPointsContainer as ISpawnPointsContainer<TPoint>;
-
-            if (_container == null)
-            {
-                Debug.LogError($"{_spawnPointsContainer.name} does not implement ISpawnPointsContainer<{typeof(TPoint).Name}>");
-            }
+            _respawnWaitInterval = new WaitForSeconds(_respawnInterval);
         }
 
         protected override void Start()
         {
-            if (_spawnOnStart)
-            {
-                StartSpawning();
-            }
+            base.Start();
+        }
+        protected virtual void OnDestroy()
+        {
+            StopAllCoroutines();
         }
 
-        public void StartSpawning()
+        protected override void InitializeItem(TItem item, TPoint spawnPoint)
         {
-            if (_spawnCoroutine != null)
-                StopCoroutine(_spawnCoroutine);
+            base.InitializeItem(item, spawnPoint);
 
-            _isSpawning = true;
-            _spawnCoroutine = StartCoroutine(SpawnRoutine());
-        }
-
-        public void StopSpawning()
-        {
-            if (_spawnCoroutine != null)
+            // Подписываемся на событие "предмет использован/подобран"
+            if (item is IPickupable pickupable)
             {
-                _isSpawning = false;
-                StopCoroutine(_spawnCoroutine);
-                _spawnCoroutine = null;
-            }
-        }
-
-        private IEnumerator SpawnRoutine()
-        {
-            while (_isSpawning)
-            {
-                yield return _waitInterval;
-                SpawnOne();
+                pickupable.PickedUp += HandleItemPickedUp;
             }
         }
 
         protected void SpawnOne()
         {
-            if (_container == null || _container.Points.Count == 0)
-            {
-                Debug.LogWarning($"No spawn points for {gameObject.name}");
-                return;
-            }
-
-            TPoint spawnPoint;
-
-            if (_randomPoint)
-            {
-                int randomIndex = Random.Range(0, _container.Points.Count);
-                spawnPoint = _container.Points[randomIndex];
-            }
-            else
-            {
-                spawnPoint = GetNextPoint();
-            }
+            TPoint spawnPoint = _randomPointOnRespawn
+                ? GetRandomSpawnPoint()
+                : GetNextSpawnPoint();
 
             TItem item = GetFromPool();
             InitializeItem(item, spawnPoint);
         }
 
-        protected virtual TPoint GetNextPoint()
+        protected virtual TPoint GetNextSpawnPoint()
         {
-            return _container.Points[0];
+            return _container?.Points[0];
         }
 
-        protected abstract void InitializeItem(TItem item, TPoint spawnPoint);
+        public void StartRespawning()
+        {
+            _isRespawning = true;
+        }
+
+        public void StopRespawning()
+        {
+            _isRespawning = false;
+        }
+
+
+        private void HandleItemPickedUp(IPickupable item)
+        {
+            if (!_respawnOnPickup) return;
+
+            var monoItem = item as TItem;
+            if (monoItem == null) return;
+
+            if (item is IPickupable pickupable)
+            {
+                pickupable.PickedUp -= HandleItemPickedUp;
+            }
+
+            ReleaseToPool(monoItem);
+
+            StartCoroutine(RespawnCoroutine());
+        }
+        private IEnumerator RespawnCoroutine()
+        {
+            _isRespawning = true;
+            yield return _respawnWaitInterval;
+
+            if (_isRespawning)
+            {
+                SpawnOne();
+            }
+
+            _isRespawning = false;
+        }
+
+        private TPoint GetRandomSpawnPoint()
+        {
+            if (_container == null || _container.Points.Count == 0)
+                return null;
+
+            int randomIndex = Random.Range(0, _container.Points.Count);
+            return _container.Points[randomIndex];
+        }
     }
 }
