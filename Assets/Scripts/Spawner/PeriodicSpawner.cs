@@ -33,11 +33,8 @@ namespace Spawners
         {
             base.InitializeItem(item, spawnPoint);
 
-            // Подписываемся на событие "предмет использован/подобран"
             if (item is IPickupable pickupable)
-            {
                 pickupable.PickedUp += HandleItemPickedUp;
-            }
         }
 
         protected void SpawnOne()
@@ -68,29 +65,29 @@ namespace Spawners
 
         private void HandleItemPickedUp(IPickupable item)
         {
-            if (!_respawnOnPickup) return;
+            if (!_respawnOnPickup) 
+                return;
 
             var monoItem = item as TItem;
-            if (monoItem == null) return;
 
-            if (item is IPickupable pickupable)
-            {
-                pickupable.PickedUp -= HandleItemPickedUp;
-            }
+            if (monoItem == null) 
+                return;
+
+            if (item is IPickupable pickupable)            
+                pickupable.PickedUp -= HandleItemPickedUp;            
 
             ReleaseToPool(monoItem);
 
             StartCoroutine(RespawnCoroutine());
         }
+
         private IEnumerator RespawnCoroutine()
         {
             _isRespawning = true;
             yield return _respawnWaitInterval;
 
-            if (_isRespawning)
-            {
-                SpawnOne();
-            }
+            if (_isRespawning)            
+                SpawnOne();            
 
             _isRespawning = false;
         }
@@ -101,6 +98,7 @@ namespace Spawners
                 return null;
 
             int randomIndex = Random.Range(0, _container.Points.Count);
+
             return _container.Points[randomIndex];
         }
     }

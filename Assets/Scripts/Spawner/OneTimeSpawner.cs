@@ -8,7 +8,7 @@ namespace Spawners
     {
         [SerializeField] private MonoBehaviour _spawnPointsContainer;
 
-        private ISpawnPointsContainer<TPoint> _container;
+        protected ISpawnPointsContainer<TPoint> _container;
 
         protected override void Awake()
         {
@@ -61,6 +61,9 @@ namespace Spawners
             }
         }
 
-        protected abstract void InitializeItem(TItem item, TPoint spawnPoint);
+        protected virtual void InitializeItem(TItem item, TPoint spawnPoint)
+        {
+            item.transform.position = spawnPoint.transform.position;
+        }
     }
 }

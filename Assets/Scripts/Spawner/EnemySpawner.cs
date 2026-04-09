@@ -4,7 +4,7 @@ public class EnemySpawner : OneTimeSpawner<Enemy, EnemySpawnPoint>
 {
     protected override void InitializeItem(Enemy enemy, EnemySpawnPoint spawnPoint)
     {
-        enemy.transform.position = spawnPoint.transform.position;
+        base.InitializeItem(enemy, spawnPoint);
         enemy.Init(spawnPoint.PatrolPoints);
         enemy.Falled += HandleEnemyFall;
     }

@@ -4,7 +4,7 @@ public class CrystalSpawner : OneTimeSpawner<Crystal, CrystalSpawnPoint>
 {
     protected override void InitializeItem(Crystal crystal, CrystalSpawnPoint spawnPoint)
     {
-        crystal.transform.position = spawnPoint.transform.position;
+        base.InitializeItem(crystal, spawnPoint);
         crystal.Init();
         crystal.Collected += HandleCrystalCollected;
     }
