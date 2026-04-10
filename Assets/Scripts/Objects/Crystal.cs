@@ -2,12 +2,12 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(CircleCollider2D), typeof(CollideDetector), typeof(CrystalAnimator))]
-public class Crystal : MonoBehaviour
+public class Crystal : MonoBehaviour, IPickupable
 {
     private CollideDetector _collideDetector;
     private CrystalAnimator _crystalAnimator;
 
-    public event Action<Crystal> Collected;
+    public event Action<IPickupable> PickedUp;
 
     private void Awake()
     {
@@ -17,13 +17,13 @@ public class Crystal : MonoBehaviour
 
     private void OnEnable()
     {
-        _collideDetector.Collided += Collect;
+        _collideDetector.Collided += PickUp;
         _crystalAnimator.CollectionAnimationCompleted += NotifyItemCollection;
     }
 
     private void OnDisable()
     {
-        _collideDetector.Collided -= Collect; 
+        _collideDetector.Collided -= PickUp; 
         _crystalAnimator.CollectionAnimationCompleted -= NotifyItemCollection;
     }
 
@@ -34,10 +34,10 @@ public class Crystal : MonoBehaviour
 
     private void NotifyItemCollection()
     {
-        Collected?.Invoke(this);
+        PickedUp?.Invoke(this);
     }
 
-    private void Collect()
+    public void PickUp()
     {
         _crystalAnimator.PlayDisapearAnimation();
     }

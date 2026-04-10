@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Spawners
@@ -9,10 +10,9 @@ namespace Spawners
     {
         [SerializeField] private float _respawnInterval = 5f;
         [SerializeField] private bool _respawnOnPickup = true;
-        [SerializeField] private bool _randomPointOnRespawn = false;
 
         private WaitForSeconds _respawnWaitInterval;
-        private bool _isRespawning = false;
+        private Dictionary<TItem, TPoint> _itemsToSpawn = new Dictionary<TItem, TPoint>();
 
         protected override void Awake()
         {
@@ -33,35 +33,23 @@ namespace Spawners
         {
             base.InitializeItem(item, spawnPoint);
 
+            _itemsToSpawn[item] = spawnPoint;
+
             if (item is IPickupable pickupable)
                 pickupable.PickedUp += HandleItemPickedUp;
         }
 
-        protected void SpawnOne()
+        protected void SpawnAtPoint(TPoint spawnPoint)
         {
-            TPoint spawnPoint = _randomPointOnRespawn
-                ? GetRandomSpawnPoint()
-                : GetNextSpawnPoint();
+            if (spawnPoint == null)
+            {
+                Debug.LogWarning($"Cannot spawn at null point for {gameObject.name}");
+                return;
+            }
 
             TItem item = GetFromPool();
             InitializeItem(item, spawnPoint);
         }
-
-        protected virtual TPoint GetNextSpawnPoint()
-        {
-            return _container?.Points[0];
-        }
-
-        public void StartRespawning()
-        {
-            _isRespawning = true;
-        }
-
-        public void StopRespawning()
-        {
-            _isRespawning = false;
-        }
-
 
         private void HandleItemPickedUp(IPickupable item)
         {
@@ -73,33 +61,27 @@ namespace Spawners
             if (monoItem == null) 
                 return;
 
+            if (!_itemsToSpawn.TryGetValue(monoItem, out TPoint originalSpawnPoint))
+            {
+                Debug.LogWarning($"Cannot find spawn point for {monoItem.name}");
+                return;
+            }
+
             if (item is IPickupable pickupable)            
-                pickupable.PickedUp -= HandleItemPickedUp;            
+                pickupable.PickedUp -= HandleItemPickedUp;
+
+            _itemsToSpawn.Remove(monoItem);
 
             ReleaseToPool(monoItem);
 
-            StartCoroutine(RespawnCoroutine());
+            StartCoroutine(RespawnAtPointCoroutine(originalSpawnPoint));
         }
 
-        private IEnumerator RespawnCoroutine()
+        private IEnumerator RespawnAtPointCoroutine(TPoint spawnPoint)
         {
-            _isRespawning = true;
             yield return _respawnWaitInterval;
 
-            if (_isRespawning)            
-                SpawnOne();            
-
-            _isRespawning = false;
-        }
-
-        private TPoint GetRandomSpawnPoint()
-        {
-            if (_container == null || _container.Points.Count == 0)
-                return null;
-
-            int randomIndex = Random.Range(0, _container.Points.Count);
-
-            return _container.Points[randomIndex];
+            SpawnAtPoint(spawnPoint);
         }
     }
 }
