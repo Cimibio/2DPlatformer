@@ -17,6 +17,12 @@ public class Mover : MonoBehaviour
 
     public void Move(float direction, float speed)
     {
+        if (IsBeforeWall(direction))
+        {
+            _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
+            return;
+        }
+
         _rigidbody.velocity = new Vector2(direction * speed, _rigidbody.velocity.y);
 
         TurnAround(direction);
@@ -52,6 +58,22 @@ public class Mover : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, _isFacingRight ? 0 : 180, 0);
             Flipped?.Invoke();
         }
+    }
+
+    public bool IsBeforeWall(float direction)
+    {
+        if (Mathf.Approximately(direction, 0))
+            return false;
+
+        Vector2 checkDirection = direction > 0 ? Vector2.right : Vector2.left;
+
+        RaycastHit2D raycastHit = Physics2D.Raycast(_collider.bounds.center, checkDirection,
+            _collider.bounds.extents.x + _checkRadius, _groundLayer);
+
+        Color rayColor = raycastHit.collider != null ? Color.green : Color.red;
+        Debug.DrawRay(_collider.bounds.center, checkDirection * (_collider.bounds.extents.x + _checkRadius), rayColor);
+
+        return raycastHit.collider != null;
     }
 }
 
