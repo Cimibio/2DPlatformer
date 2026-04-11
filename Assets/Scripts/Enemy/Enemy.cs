@@ -2,62 +2,113 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(PatrolMover), typeof(FallDetector))]
-public class Enemy : MonoBehaviour
+[RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
+[RequireComponent(typeof(FallDetector))]
+public class Enemy : MonoBehaviour, IChasable
 {
-    private PatrolMover _mover;
-    private int _patrolPointIndex = 0;
-    private List<Transform> _patrolPoints = new List<Transform>();
+    private PatrolMover _patrolMover;
+    private Chaser _chaser;
+    private TargetDetector _targetDetector;
     private FallDetector _fallDetector;
 
+    private bool _isAlive = true;
+
     public event Action<Enemy> Falled;
+    public bool IsAlive => _isAlive;
 
     private void Awake()
     {
-        _mover = GetComponent<PatrolMover>();
+        _patrolMover = GetComponent<PatrolMover>();
+        _chaser = GetComponent<Chaser>();
+        _targetDetector = GetComponent<TargetDetector>();
         _fallDetector = GetComponent<FallDetector>();
     }
 
     private void OnEnable()
     {
-        _mover.PointReached += GetNextPlace;
-        _fallDetector.Falled += Falling;
+        _targetDetector.TargetEntered += OnTargetDetected;
+        _targetDetector.TargetExited += OnTargetLost;
+        _chaser.ChaseStopped += OnChaseStopped;
+        _fallDetector.Falled += OnFalled;
     }
 
     private void OnDisable()
     {
-        _mover.PointReached -= GetNextPlace;
-        _fallDetector.Falled -= Falling;
+        _targetDetector.TargetEntered -= OnTargetDetected;
+        _targetDetector.TargetExited -= OnTargetLost;
+        _chaser.ChaseStopped -= OnChaseStopped;
+        _fallDetector.Falled -= OnFalled;
+    }
+
+    private void Update()
+    {
+        if (!_isAlive) return;
+
+        // Основная логика выбора поведения
+        if (_targetDetector.HasTarget)
+        {
+            // Если цель есть - преследуем
+            if (!_chaser.IsChasing)
+            {
+                _patrolMover.StopPatrol();
+                _chaser.StartChase(this);
+            }
+        }
+        else
+        {
+            // Если цели нет - патрулируем
+            if (!_patrolMover.IsPatrolling && !_chaser.IsChasing)
+            {
+                _patrolMover.StartPatrol();
+            }
+        }
+    }
+
+    private void OnTargetDetected(Transform target)
+    {
+        if (_debugMode)
+            Debug.Log($"[{gameObject.name}] Target detected, starting chase!");
+
+        _patrolMover.StopPatrol();
+        _chaser.StartChase(this);
+    }
+
+    private void OnTargetLost()
+    {
+        if (_debugMode)
+            Debug.Log($"[{gameObject.name}] Target lost, returning to patrol!");
+
+        // Не останавливаем чейзер сразу, он сам решит когда остановиться
+    }
+
+    private void OnChaseStopped()
+    {
+        if (_debugMode)
+            Debug.Log($"[{gameObject.name}] Chase stopped, resuming patrol!");
+
+        if (_isAlive)
+        {
+            _patrolMover.StartPatrol();
+        }
     }
 
     public void Init(IReadOnlyList<Transform> patrolPoints)
     {
-        if (patrolPoints == null || patrolPoints.Count == 0)
-            return;
+        _patrolMover.SetPatrolPoints(patrolPoints);
 
-        _patrolPoints.Clear();
-        _patrolPointIndex = 0;
-
-        foreach (var item in patrolPoints)
-            _patrolPoints.Add(item);
-
-        SendToCurrentPlace();
+        if (!_targetDetector.HasTarget)
+        {
+            _patrolMover.StartPatrol();
+        }
     }
 
-    private void Falling()
+    private void OnFalled()
     {
+        _isAlive = false;
+        _patrolMover.StopPatrol();
+        _chaser.StopChase();
         Falled?.Invoke(this);
     }
 
-    private void GetNextPlace()
-    {
-        _patrolPointIndex = ++_patrolPointIndex % _patrolPoints.Count;
-        SendToCurrentPlace();
-    }
-
-    private void SendToCurrentPlace()
-    {
-        if (_patrolPoints.Count > 0)
-            _mover.SetMovePoint(_patrolPoints[_patrolPointIndex].position);
-    }
+    private bool _debugMode = true;
 }
