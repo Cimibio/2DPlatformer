@@ -13,8 +13,11 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
     public override void OnEnable()
     {
-        base.OnEnable();
+        base.OnEnable();        
+    }
 
+    private void Start()
+    {
         TargetDetector.TargetDetected += OnTargetDetected;
         TargetDetector.TargetPositionUpdated += OnTargetPositionUpdated;
         TargetDetector.LineOfSightLost += OnLineOfSightLost;
