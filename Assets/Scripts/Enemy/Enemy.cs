@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
 [RequireComponent(typeof(FallDetector))]
-public class Enemy : MonoBehaviour, IChasable
+public class Enemy : MonoBehaviour
 {
     private PatrolMover _patrolMover;
     private Chaser _chaser;
@@ -12,9 +12,9 @@ public class Enemy : MonoBehaviour, IChasable
     private FallDetector _fallDetector;
 
     private bool _isAlive = true;
+    private bool _isReturningToLastPosition = false;
 
     public event Action<Enemy> Falled;
-    public bool IsAlive => _isAlive;
 
     private void Awake()
     {
@@ -26,16 +26,20 @@ public class Enemy : MonoBehaviour, IChasable
 
     private void OnEnable()
     {
-        _targetDetector.TargetEntered += OnTargetDetected;
-        _targetDetector.TargetExited += OnTargetLost;
+        _targetDetector.TargetDetected += OnTargetDetected;
+        _targetDetector.TargetPositionUpdated += OnTargetPositionUpdated;
+        _targetDetector.LineOfSightLost += OnLineOfSightLost;
+        _targetDetector.TargetLost += OnTargetLost;
         _chaser.ChaseStopped += OnChaseStopped;
         _fallDetector.Falled += OnFalled;
     }
 
     private void OnDisable()
     {
-        _targetDetector.TargetEntered -= OnTargetDetected;
-        _targetDetector.TargetExited -= OnTargetLost;
+        _targetDetector.TargetDetected -= OnTargetDetected;
+        _targetDetector.TargetPositionUpdated -= OnTargetPositionUpdated;
+        _targetDetector.LineOfSightLost -= OnLineOfSightLost;
+        _targetDetector.TargetLost -= OnTargetLost;
         _chaser.ChaseStopped -= OnChaseStopped;
         _fallDetector.Falled -= OnFalled;
     }
@@ -44,49 +48,56 @@ public class Enemy : MonoBehaviour, IChasable
     {
         if (!_isAlive) return;
 
-        // Основная логика выбора поведения
-        if (_targetDetector.HasTarget)
+        if (_targetDetector.HasTarget && _targetDetector.HasLineOfSight)
         {
-            // Если цель есть - преследуем
+            // Видим игрока - преследуем
             if (!_chaser.IsChasing)
             {
                 _patrolMover.StopPatrol();
-                _chaser.StartChase(this);
+                _chaser.StartChase(_targetDetector.Target.position);
             }
         }
-        else
+        else if (_targetDetector.HasTarget && !_targetDetector.HasLineOfSight && !_isReturningToLastPosition)
         {
-            // Если цели нет - патрулируем
-            if (!_patrolMover.IsPatrolling && !_chaser.IsChasing)
-            {
-                _patrolMover.StartPatrol();
-            }
+            // Потеряли видимость - идем к последней известной позиции
+            _isReturningToLastPosition = true;
+            _chaser.UpdateTarget(_targetDetector.LastKnownPosition);
+        }
+        else if (!_targetDetector.HasTarget && !_chaser.IsChasing && !_patrolMover.IsPatrolling)
+        {
+            // Нет цели - патрулируем
+            _patrolMover.StartPatrol();
         }
     }
 
     private void OnTargetDetected(Transform target)
     {
-        if (_debugMode)
-            Debug.Log($"[{gameObject.name}] Target detected, starting chase!");
-
         _patrolMover.StopPatrol();
-        _chaser.StartChase(this);
+        _chaser.StartChase(target.position);
+    }
+
+    private void OnTargetPositionUpdated(Vector3 position)
+    {
+        if (_chaser.IsChasing)
+        {
+            _chaser.UpdateTarget(position);
+        }
+    }
+
+    private void OnLineOfSightLost()
+    {
+        _isReturningToLastPosition = true;
+        _chaser.UpdateTarget(_targetDetector.LastKnownPosition);
     }
 
     private void OnTargetLost()
     {
-        if (_debugMode)
-            Debug.Log($"[{gameObject.name}] Target lost, returning to patrol!");
-
-        // Не останавливаем чейзер сразу, он сам решит когда остановиться
+        _isReturningToLastPosition = false;
     }
 
     private void OnChaseStopped()
     {
-        if (_debugMode)
-            Debug.Log($"[{gameObject.name}] Chase stopped, resuming patrol!");
-
-        if (_isAlive)
+        if (_isAlive && !_targetDetector.HasTarget)
         {
             _patrolMover.StartPatrol();
         }
@@ -109,6 +120,4 @@ public class Enemy : MonoBehaviour, IChasable
         _chaser.StopChase();
         Falled?.Invoke(this);
     }
-
-    private bool _debugMode = true;
 }
