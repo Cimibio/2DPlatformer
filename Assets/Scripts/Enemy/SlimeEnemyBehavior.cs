@@ -7,151 +7,103 @@ public class SlimeEnemyBehavior : EnemyBehavior
     [SerializeField] private float _forgetDelay = 5f;
     [SerializeField] private bool _debugMode = true;
 
-    private bool _isReturningToLastPosition = false;
-    private float _forgetTimer;
+    private enum State
+    {
+        Patrol,
+        Chase,
+        SearchLastPosition
+    }
+
+    private State _currentState;
     private Coroutine _forgetCoroutine;
 
-    public override void OnEnable()
+    protected override void Update()
     {
-        base.OnEnable();        
+        UpdateState();
+        ExecuteCurrentState();
     }
 
-    private void Start()
+    private void UpdateState()
     {
-        TargetDetector.TargetDetected += OnTargetDetected;
-        TargetDetector.TargetPositionUpdated += OnTargetPositionUpdated;
-        TargetDetector.LineOfSightLost += OnLineOfSightLost;
-        TargetDetector.TargetLost += OnTargetLost;
+        State newState = _currentState;
 
-        Chaser.ChaseStarted += OnChaseStarted;
-        Chaser.ChaseStopped += OnChaseStopped;
-        Chaser.TargetReached += OnTargetReached;
-    }
+        if (TargetDetector.HasTarget && TargetDetector.HasLineOfSight)        
+            newState = State.Chase;        
+        else if (TargetDetector.HasTarget && !TargetDetector.HasLineOfSight)        
+            newState = State.SearchLastPosition;        
+        else if (!TargetDetector.HasTarget)        
+            newState = State.Patrol;        
 
-    public override void OnDisable()
-    {
-        base.OnDisable();
-
-        TargetDetector.TargetDetected -= OnTargetDetected;
-        TargetDetector.TargetPositionUpdated -= OnTargetPositionUpdated;
-        TargetDetector.LineOfSightLost -= OnLineOfSightLost;
-        TargetDetector.TargetLost -= OnTargetLost;
-
-        Chaser.ChaseStarted -= OnChaseStarted;
-        Chaser.ChaseStopped -= OnChaseStopped;
-        Chaser.TargetReached -= OnTargetReached;
-
-        StopForgetTimer();
-    }
-
-    public override void Update()
-    {
-        base.Update();
-
-        if (TargetDetector.HasTarget && TargetDetector.HasLineOfSight)
+        if (newState != _currentState)
         {
-            ResetForgetTimer();
+            ExitState(_currentState);
+            _currentState = newState;
+            EnterState(_currentState);
+        }
+    }
 
-            if (!Chaser.IsChasing)
-            {
+    private void EnterState(State state)
+    {
+        switch (state)
+        {
+            case State.Patrol:
+                if (_debugMode) 
+                    Debug.Log($"[{_enemy.name}] Entering Patrol state");
+
+                PatrolMover.StartPatrol();
+                break;
+
+            case State.Chase:
+                if (_debugMode) 
+                    Debug.Log($"[{_enemy.name}] Entering Chase state");
+
+                StopForgetTimer();
                 PatrolMover.StopPatrol();
                 Chaser.StartChase(TargetDetector.Target.position);
-            }
-        }
-        else if (TargetDetector.HasTarget && !TargetDetector.HasLineOfSight)
-        {
-            if (!_isReturningToLastPosition && !Chaser.IsChasing)
-            {
-                _isReturningToLastPosition = true;
+                break;
+
+            case State.SearchLastPosition:
+                if (_debugMode) 
+                    Debug.Log($"[{_enemy.name}] Entering Search state");
+
                 Chaser.StartChase(TargetDetector.LastKnownPosition);
-            }
-        }
-        else if (!TargetDetector.HasTarget && !Chaser.IsChasing && !PatrolMover.IsPatrolling)
-        {
-            PatrolMover.StartPatrol();
+                StartForgetTimer();
+                break;
         }
     }
 
-    public override void Init()
+    private void ExecuteCurrentState()
     {
-        base.Init();
-
-        if (!TargetDetector.HasTarget)
+        switch (_currentState)
         {
-            PatrolMover.StartPatrol();
+            case State.Chase:
+                if (Chaser.IsChasing)                
+                    Chaser.UpdateTarget(TargetDetector.Target.position);
+                
+                break;
+
+            case State.SearchLastPosition:
+                // Чейзер уже движется к LastKnownPosition
+                // Таймер тикает сам
+                break;
+
+            case State.Patrol:
+                // Патруль работает сам
+                break;
         }
     }
 
-    private void OnTargetDetected(Transform target)
+    private void ExitState(State state)
     {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Target detected! Starting chase.");
-
-        StopForgetTimer();
-        PatrolMover.StopPatrol();
-        Chaser.StartChase(target.position);
-    }
-
-    private void OnTargetPositionUpdated(Vector3 position)
-    {
-        if (Chaser.IsChasing)
+        switch (state)
         {
-            Chaser.UpdateTarget(position);
-            ResetForgetTimer();
-        }
-    }
+            case State.Chase:
+                // Останавливаем чейзер, если он не был остановлен
+                break;
 
-    private void OnLineOfSightLost()
-    {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Line of sight lost. Moving to last known position.");
-
-        _isReturningToLastPosition = true;
-        Chaser.UpdateTarget(TargetDetector.LastKnownPosition);
-        StartForgetTimer();
-    }
-
-    private void OnTargetLost()
-    {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Target left vision zone.");
-
-        _isReturningToLastPosition = false;
-
-        if (Chaser.IsChasing)
-        {
-            StartForgetTimer();
-        }
-    }
-
-    private void OnChaseStarted()
-    {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Chase started.");
-    }
-
-    private void OnChaseStopped()
-    {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Chase stopped.");
-
-        StopForgetTimer();
-        _isReturningToLastPosition = false;
-
-        if (_enemy.IsAlive && !TargetDetector.HasTarget)
-        {
-            PatrolMover.StartPatrol();
-        }
-    }
-
-    private void OnTargetReached()
-    {
-        if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Target position reached.");
-
-        if (_isReturningToLastPosition)
-        {
-            StartForgetTimer();
+            case State.SearchLastPosition:
+                StopForgetTimer();
+                break;
         }
     }
 
@@ -168,26 +120,15 @@ public class SlimeEnemyBehavior : EnemyBehavior
             StopCoroutine(_forgetCoroutine);
             _forgetCoroutine = null;
         }
-        _forgetTimer = 0;
-    }
-
-    private void ResetForgetTimer()
-    {
-        if (_forgetCoroutine != null)
-        {
-            StopCoroutine(_forgetCoroutine);
-            _forgetCoroutine = StartCoroutine(ForgetTimerCoroutine());
-        }
-        _forgetTimer = 0;
     }
 
     private IEnumerator ForgetTimerCoroutine()
     {
-        _forgetTimer = 0;
+        float timer = 0;
 
-        while (_forgetTimer < _forgetDelay)
+        while (timer < _forgetDelay)
         {
-            _forgetTimer += Time.deltaTime;
+            timer += Time.deltaTime;
             yield return null;
         }
 
@@ -200,12 +141,18 @@ public class SlimeEnemyBehavior : EnemyBehavior
     private void ForgetTarget()
     {
         StopForgetTimer();
-        _isReturningToLastPosition = false;
         Chaser.StopChase();
 
-        if (_enemy.IsAlive)
-        {
-            PatrolMover.StartPatrol();
-        }
+        if (_enemy.IsAlive)        
+            PatrolMover.StartPatrol();        
+    }
+
+    public override void Init()
+    {
+        base.Init();
+        _currentState = State.Patrol;
+
+        if (!TargetDetector.HasTarget)        
+            PatrolMover.StartPatrol();        
     }
 }

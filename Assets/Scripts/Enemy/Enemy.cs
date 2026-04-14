@@ -41,19 +41,17 @@ public class Enemy : MonoBehaviour, IChasable
     private void OnEnable()
     {
         _fallDetector.Falled += OnFalled;
-        _behavior?.OnEnable();
     }
 
     private void OnDisable()
     {
         _fallDetector.Falled -= OnFalled;
-        _behavior?.OnDisable();
     }
 
     private void Update()
     {
-        if (!_isAlive) return;
-        _behavior?.Update();
+        if (!_isAlive) 
+            return;
     }
 
     public void Init(IReadOnlyList<Transform> patrolPoints)

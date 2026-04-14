@@ -1,5 +1,7 @@
 using UnityEngine;
 
+[RequireComponent (typeof(Enemy), typeof(PatrolMover), typeof(Chaser))]
+[RequireComponent(typeof(TargetDetector))]
 public abstract class EnemyBehavior : MonoBehaviour
 {
     protected Enemy _enemy;
@@ -17,8 +19,8 @@ public abstract class EnemyBehavior : MonoBehaviour
         }
     }
 
-    public virtual void OnEnable() { }
-    public virtual void OnDisable() { }
-    public virtual void Update() { }
+    protected virtual void OnEnable() { }
+    protected virtual void OnDisable() { }
+    protected virtual void Update() { }
     public virtual void Init() { }
 }
