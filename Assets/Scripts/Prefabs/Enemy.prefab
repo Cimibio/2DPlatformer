@@ -268,7 +268,7 @@ MonoBehaviour:
     m_Bits: 128
   _obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   _checkInterval: 0.1
   _debugMode: 1
 --- !u!114 &2114396651525465690

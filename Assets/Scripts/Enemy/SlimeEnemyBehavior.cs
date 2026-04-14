@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class SlimeEnemyBehavior : EnemyBehavior
@@ -16,6 +16,7 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
     private State _currentState;
     private Coroutine _forgetCoroutine;
+    private bool _isForgetting = false; // ← флаг процесса забывания
 
     protected override void Update()
     {
@@ -27,12 +28,12 @@ public class SlimeEnemyBehavior : EnemyBehavior
     {
         State newState = _currentState;
 
-        if (TargetDetector.HasTarget && TargetDetector.HasLineOfSight)        
-            newState = State.Chase;        
-        else if (TargetDetector.HasTarget && !TargetDetector.HasLineOfSight)        
-            newState = State.SearchLastPosition;        
-        else if (!TargetDetector.HasTarget)        
-            newState = State.Patrol;        
+        if (TargetDetector.HasTarget && TargetDetector.HasLineOfSight)
+            newState = State.Chase;
+        else if (TargetDetector.HasTarget && !TargetDetector.HasLineOfSight)
+            newState = State.SearchLastPosition;
+        else if (!TargetDetector.HasTarget && !_isForgetting) // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
+            newState = State.Patrol;
 
         if (newState != _currentState)
         {
@@ -47,23 +48,27 @@ public class SlimeEnemyBehavior : EnemyBehavior
         switch (state)
         {
             case State.Patrol:
-                if (_debugMode) 
+                if (_debugMode)
                     Debug.Log($"[{_enemy.name}] Entering Patrol state");
 
+                _isForgetting = false;
+                StopForgetTimer();
+                Chaser.StopChase();
                 PatrolMover.StartPatrol();
                 break;
 
             case State.Chase:
-                if (_debugMode) 
+                if (_debugMode)
                     Debug.Log($"[{_enemy.name}] Entering Chase state");
 
+                _isForgetting = false;
                 StopForgetTimer();
                 PatrolMover.StopPatrol();
                 Chaser.StartChase(TargetDetector.Target.position);
                 break;
 
             case State.SearchLastPosition:
-                if (_debugMode) 
+                if (_debugMode)
                     Debug.Log($"[{_enemy.name}] Entering Search state");
 
                 Chaser.StartChase(TargetDetector.LastKnownPosition);
@@ -77,18 +82,17 @@ public class SlimeEnemyBehavior : EnemyBehavior
         switch (_currentState)
         {
             case State.Chase:
-                if (Chaser.IsChasing)                
+                if (Chaser.IsChasing)
                     Chaser.UpdateTarget(TargetDetector.Target.position);
-                
                 break;
 
             case State.SearchLastPosition:
-                // ������ ��� �������� � LastKnownPosition
-                // ������ ������ ���
+                // Если цель вышла из зоны детекции, но мы ещё не забыли - продолжаем поиск
+                // Таймер тикает сам
                 break;
 
             case State.Patrol:
-                // ������� �������� ���
+                // Патруль работает сам
                 break;
         }
     }
@@ -98,11 +102,12 @@ public class SlimeEnemyBehavior : EnemyBehavior
         switch (state)
         {
             case State.Chase:
-                // ������������� ������, ���� �� �� ��� ����������
+                // Ничего не делаем
                 break;
 
             case State.SearchLastPosition:
-                StopForgetTimer();
+                // Не останавливаем таймер при выходе в Patrol, 
+                // т.к. он должен дотикать сам
                 break;
         }
     }
@@ -124,10 +129,21 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
     private IEnumerator ForgetTimerCoroutine()
     {
+        _isForgetting = true;
         float timer = 0;
 
         while (timer < _forgetDelay)
         {
+            // Если цель снова стала видимой - прерываем забывание
+            if (TargetDetector.HasLineOfSight)
+            {
+                if (_debugMode)
+                    Debug.Log($"[{_enemy.name}] Target spotted again, canceling forget timer");
+
+                _isForgetting = false;
+                yield break;
+            }
+
             timer += Time.deltaTime;
             yield return null;
         }
@@ -135,24 +151,20 @@ public class SlimeEnemyBehavior : EnemyBehavior
         if (_debugMode)
             Debug.Log($"[{_enemy.name}] Forgot about target after {_forgetDelay} seconds.");
 
-        ForgetTarget();
-    }
+        _isForgetting = false;
 
-    private void ForgetTarget()
-    {
-        StopForgetTimer();
-        Chaser.StopChase();
-
-        if (_enemy.IsAlive)        
-            PatrolMover.StartPatrol();        
+        // Цель забыта - переходим в Patrol
+        _currentState = State.Patrol;
+        EnterState(_currentState);
     }
 
     public override void Init()
     {
         base.Init();
         _currentState = State.Patrol;
+        _isForgetting = false;
 
-        if (!TargetDetector.HasTarget)        
-            PatrolMover.StartPatrol();        
+        if (!TargetDetector.HasTarget)
+            PatrolMover.StartPatrol();
     }
 }
