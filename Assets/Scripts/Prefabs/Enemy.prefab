@@ -315,7 +315,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c044a3d45eea55644a6252d39cd928b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _attackRange: 0.2
+  _attackRange: 1
   _attackCooldown: 1
   _targetLayer:
     serializedVersion: 2

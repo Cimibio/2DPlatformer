@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class EnemyAttacker : MonoBehaviour
@@ -60,9 +59,11 @@ public class EnemyAttacker : MonoBehaviour
         if (!IsTargetInAttackRange())
             return;
 
-        if (_currentTarget.TryGetComponent(out IDamageable target))
-            if (target == null || !target.IsAlive)
-                return;
+        if (!_currentTarget.TryGetComponent(out IDamageable target))
+            return;
+
+        if (!target.IsAlive)
+            return;
 
         // Наносим урон
         target.TakeDamage(_enemy.Damage);

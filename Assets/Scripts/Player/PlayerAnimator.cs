@@ -11,7 +11,7 @@ public class PlayerAnimator : MonoBehaviour
     private readonly int _speedXHash = Animator.StringToHash("speedX");
     private readonly int _speedYHash = Animator.StringToHash("speedY");
     private readonly int _isGroundedHash = Animator.StringToHash("isGrounded");
-    private readonly int _hitHash = Animator.StringToHash("hit");
+    private readonly int _hitHash = Animator.StringToHash("hurt");
     private readonly int _dieHash = Animator.StringToHash("die");
 
     private void Awake()

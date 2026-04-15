@@ -22,11 +22,11 @@ public class Player : MonoBehaviour, IChasable, IDamageable
     private WaitForSeconds _stunDuration;
 
     private float _currentHealth;
-    private bool _isAlive = true;
+    //private bool _isAlive = true;
     private bool _isStunned = false;
 
-    public bool IsAlive => _isAlive;
-    public bool CanMove => _isAlive && !_isStunned;
+    public bool IsAlive => _currentHealth > 0;
+    public bool CanMove => IsAlive && !_isStunned;
 
     public event Action Hitted;
     public event Action Died;
@@ -40,6 +40,7 @@ public class Player : MonoBehaviour, IChasable, IDamageable
         _rigidbody = GetComponent<Rigidbody2D>();
 
         _stunDuration = new WaitForSeconds(_hitStunDuration);
+        _currentHealth = _maxHealth;
     }
 
     private void FixedUpdate()
@@ -63,7 +64,7 @@ public class Player : MonoBehaviour, IChasable, IDamageable
 
     public void TakeDamage(float damage)
     {
-        if (!_isAlive) 
+        if (!IsAlive)
             return;
 
         _currentHealth -= damage;
@@ -94,13 +95,12 @@ public class Player : MonoBehaviour, IChasable, IDamageable
 
         yield return _stunDuration;
 
-        //_isStunned = false;
+        _isStunned = false;
         _inputReader.enabled = true;
     }
 
     private void Die()
     {
-        _isAlive = false;
         _currentHealth = 0;
 
         Debug.Log("[Player] Died!");

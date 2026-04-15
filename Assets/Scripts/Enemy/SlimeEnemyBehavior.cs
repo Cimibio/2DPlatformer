@@ -16,6 +16,7 @@ public class SlimeEnemyBehavior : EnemyBehavior
     {
         Patrol,
         Chase,
+        Attack,
         SearchLastPosition
     }
 
@@ -45,15 +46,32 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
         State newState = _currentState;
 
+        // Приоритеты состояний
         if (_enemy.Targeter.HasTarget && _enemy.Targeter.HasLineOfSight)
-            newState = State.Chase;
+        {
+            // Проверяем, можем ли атаковать
+            if (Attacker != null && Attacker.CanAttack && Attacker.IsTargetInAttackRange())
+            {
+                newState = State.Attack;
+                
+            }
+            else
+            {
+                newState = State.Chase;
+            }
+        }
         else if (_enemy.Targeter.HasTarget && !_enemy.Targeter.HasLineOfSight)
+        {
             newState = State.SearchLastPosition;
+        }
         else if (!_enemy.Targeter.HasTarget && !_isForgetting)
+        {
             newState = State.Patrol;
+        }
 
         if (newState != _currentState)
         {
+            ExitState(_currentState);
             _currentState = newState;
             EnterState(_currentState);
         }
@@ -85,6 +103,17 @@ public class SlimeEnemyBehavior : EnemyBehavior
                 Attacker?.SetTarget(_enemy.Targeter.Target);
                 break;
 
+            case State.Attack:
+                if (_debugMode)
+                    Debug.Log($"[{_enemy.name}] Entering Attack state");
+
+                PatrolMover.StopPatrol();
+                Chaser.StopChase();
+                Attacker?.SetTarget(_enemy.Targeter.Target);
+
+                PerformAttack();
+                break;
+
             case State.SearchLastPosition:
                 if (_debugMode)
                     Debug.Log($"[{_enemy.name}] Entering Search state");
@@ -98,8 +127,38 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
     private void ExecuteCurrentState()
     {
-        if (_currentState == State.Chase)
-            UpdateChaseState();
+        switch (_currentState)
+        {
+            case State.Chase:
+                UpdateChaseState();
+                break;
+
+            case State.Attack:
+                UpdateAttackState();
+                break;
+
+            case State.SearchLastPosition:
+                // Чейзер сам движется к последней позиции
+                break;
+
+            case State.Patrol:
+                // Патруль работает сам
+                break;
+        }
+    }
+
+    private void ExitState(State state)
+    {
+        switch (state)
+        {
+            case State.Attack:
+                // Выходим из атаки, сбрасываем флаги если нужно
+                break;
+
+            case State.SearchLastPosition:
+                // Не останавливаем таймер при выходе
+                break;
+        }
     }
 
     private void UpdateChaseState()
@@ -107,17 +166,35 @@ public class SlimeEnemyBehavior : EnemyBehavior
         if (Chaser.IsChasing)
         {
             Chaser.UpdateTarget(_enemy.Targeter.Target.position);
+            Attacker?.SetTarget(_enemy.Targeter.Target);
+        }
+    }
 
-            // Проверяем возможность атаки
-            if (Attacker != null && Attacker.CanAttack)
-            {
-                Attacker.SetTarget(_enemy.Targeter.Target);
+    private void UpdateAttackState()
+    {
+        // Проверяем, всё ещё ли цель в зоне атаки и можем ли атаковать
+        if (Attacker == null || !_enemy.Targeter.HasTarget)
+            return;
+        
+        // Если цель вышла из зоны атаки или атака завершилась
+        if (!Attacker.IsTargetInAttackRange() || !Attacker.CanAttack)
+            return;
+        
+        // Обновляем позицию цели (вдруг сместилась)
+        Attacker.SetTarget(_enemy.Targeter.Target);
 
-                if (Attacker.IsTargetInAttackRange())
-                {
-                    Attacker.Attack();
-                }
-            }
+        if (Attacker.CanAttack)        
+            PerformAttack();        
+    }
+
+    private void PerformAttack()
+    {
+        if (Attacker != null && Attacker.CanAttack)
+        {
+            Attacker.Attack();
+
+            // Можно добавить анимацию атаки
+            // _animator.PlayAttackAnimation();
         }
     }
 
