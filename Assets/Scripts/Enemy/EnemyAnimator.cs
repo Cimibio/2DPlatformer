@@ -9,6 +9,8 @@ public class EnemyAnimator : MonoBehaviour
     private Rigidbody2D _rigidbody;
 
     private readonly int _speedXHash = Animator.StringToHash("speedX");
+    private readonly int _hitHash = Animator.StringToHash("hit");
+    private readonly int _dieHash = Animator.StringToHash("die");
 
     private void Awake()
     {
@@ -21,5 +23,15 @@ public class EnemyAnimator : MonoBehaviour
     {
         float horizontalSpeed = Mathf.Abs(_rigidbody.velocity.x);
         _animator.SetFloat(_speedXHash, horizontalSpeed);
+    }
+
+    public void PlayHitAnimation()
+    {
+        _animator.SetTrigger(_hitHash);
+    }
+
+    public void PlayDieAnimation()
+    {
+        _animator.SetTrigger(_dieHash);
     }
 }

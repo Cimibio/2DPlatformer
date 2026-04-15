@@ -4,53 +4,63 @@ using UnityEngine;
 
 [RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
 [RequireComponent(typeof(FallDetector))]
-public class Enemy : MonoBehaviour, IChasable
+public class Enemy : MonoBehaviour, IChasable, IDamageable
 {
+    [Header("Combat Settings")]
+    [SerializeField] private float _maxHealth = 30f;
+    [SerializeField] private float _damage = 10f;
+
+    private float _currentHealth;
+
     private PatrolMover _patrolMover;
     private Chaser _chaser;
-    private TargetDetector _targetDetector;
+    private TargetDetector _targeter;
     private FallDetector _fallDetector;
     private EnemyBehavior _behavior;
+    private EnemyAnimator _animator;
 
-    private bool _isAlive = true;
+    //private bool _isAlive = true;
 
     public event Action<Enemy> Falled;
+    public event Action<float, float> HealthChanged;
+    public event Action<Enemy> Died;
 
-    // Публичные свойства для доступа из Behavior
     public PatrolMover PatrolMover => _patrolMover;
     public Chaser Chaser => _chaser;
-    public TargetDetector TargetDetector => _targetDetector;
-    public bool IsAlive => _isAlive;
+    public TargetDetector Targeter => _targeter;
+    public bool IsAlive => _currentHealth > 0;
+    public float Damage => _damage;
 
     private void Awake()
     {
         _patrolMover = GetComponent<PatrolMover>();
         _chaser = GetComponent<Chaser>();
-        _targetDetector = GetComponent<TargetDetector>();
+        _targeter = GetComponent<TargetDetector>();
         _fallDetector = GetComponent<FallDetector>();
-
-        // Ищем компонент поведения на объекте
+        _animator = GetComponent<EnemyAnimator>();
         _behavior = GetComponent<EnemyBehavior>();
 
         if (_behavior == null)
         {
             Debug.LogError($"[{gameObject.name}] No EnemyBehavior component found! Please add a behavior component.");
         }
+
+        _currentHealth = _maxHealth;
     }
 
     private void OnEnable()
     {
-        _fallDetector.Falled += OnFalled;
+        _fallDetector.Falled += Fall;
     }
 
     private void OnDisable()
     {
-        _fallDetector.Falled -= OnFalled;
+        _fallDetector.Falled -= Fall;
     }
 
     private void Update()
     {
-        if (!_isAlive) 
+        if (!IsAlive) 
             return;
     }
 
@@ -58,11 +68,43 @@ public class Enemy : MonoBehaviour, IChasable
     {
         _patrolMover.SetPatrolPoints(patrolPoints);
         _behavior?.Init();
+        _currentHealth = _maxHealth;
     }
 
-    private void OnFalled()
+    public void TakeDamage(float damage)
     {
-        _isAlive = false;
+        if (!IsAlive) 
+            return;
+
+        _currentHealth -= damage;
+        HealthChanged?.Invoke(_currentHealth, _maxHealth);
+
+        Debug.Log($"[{gameObject.name}] Took {damage} damage. Health: {_currentHealth}/{_maxHealth}");
+
+        if (_animator != null)        
+            _animator.PlayHitAnimation();        
+
+        if (_currentHealth <= 0)        
+            Die();        
+    }
+
+    private void Die()
+    {
+        _currentHealth = 0;
+
+        Debug.Log($"[{gameObject.name}] Died!");
+
+        _chaser.StopChase();
+        _patrolMover.StopPatrol();
+
+        Died?.Invoke(this);
+
+        // TODO: Проиграть анимацию смерти, отключить коллайдеры и т.д.
+    }
+
+    private void Fall()
+    {
+        //_isAlive = false;
         Falled?.Invoke(this);
     }
 }
