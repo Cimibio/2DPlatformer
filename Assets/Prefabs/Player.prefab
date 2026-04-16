@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 4
-  _jumpForce: 4
+  _jumpForce: 8
   _maxHealth: 100
   _hitStunDuration: 0.5
 --- !u!114 &983197051128760870

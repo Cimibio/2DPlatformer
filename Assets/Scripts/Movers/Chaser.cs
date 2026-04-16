@@ -11,6 +11,7 @@ public class Chaser : MonoBehaviour
     private Rigidbody2D _rigidbody;
     private Vector3 _currentTarget;
     private bool _isChasing;
+    private float _sqrStoppingDistance;
 
     public event Action ChaseStarted;
     public event Action ChaseStopped;
@@ -22,15 +23,16 @@ public class Chaser : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+        _sqrStoppingDistance = _stoppingDistance * _stoppingDistance;
     }
 
     private void Update()
     {
         if (!_isChasing) return;
 
-        float distance = Vector3.Distance(transform.position, _currentTarget);
+        float sqrDistance = (transform.position - _currentTarget).sqrMagnitude;
 
-        if (distance <= _stoppingDistance)
+        if (sqrDistance <= _sqrStoppingDistance)
         {
             StopChase();
             TargetReached?.Invoke();

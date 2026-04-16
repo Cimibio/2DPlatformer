@@ -48,5 +48,5 @@ public class CollideDetector : MonoBehaviour
     }
 
     protected virtual void HandleCollision(Collider2D other)
-    {    }
+    { }
 }

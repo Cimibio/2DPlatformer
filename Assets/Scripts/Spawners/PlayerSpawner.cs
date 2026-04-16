@@ -1,4 +1,3 @@
-// PlayerSpawner.cs
 using UnityEngine;
 
 namespace Spawners
@@ -34,6 +33,7 @@ namespace Spawners
             if (_isRespawning)
             {
                 _respawnTimer -= Time.deltaTime;
+
                 if (_respawnTimer <= 0)
                 {
                     _isRespawning = false;

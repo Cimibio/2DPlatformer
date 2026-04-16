@@ -12,6 +12,7 @@ public class PatrolMover : MonoBehaviour
     private Vector3 _currentTarget;
     private bool _isPatrolling;
     private bool _isWaiting;
+    private float _sqrWaypointTolerance;
 
     public event Action PointReached;
     public event Action PatrolStarted;
@@ -20,13 +21,23 @@ public class PatrolMover : MonoBehaviour
     public bool IsPatrolling => _isPatrolling;
     public int CurrentWaypointIndex => _currentPointIndex;
 
+    private void Awake()
+    {
+        _sqrWaypointTolerance = _waypointTolerance * _waypointTolerance;
+    }
+
     private void Update()
     {
         if (!_isPatrolling || _isWaiting)
             return;
 
         Move();
-        CheckWaypointReached();
+
+        if (IsWaypointReached())
+        {
+            PointReached?.Invoke();
+            MoveToNextWaypoint();
+        }
     }
 
     public void SetPatrolPoints(IReadOnlyList<Transform> points)
@@ -69,29 +80,16 @@ public class PatrolMover : MonoBehaviour
         PatrolStopped?.Invoke();
     }
 
-    public void UpdatePatrol()
-    {
-        // Для совместимости с интерфейсом
-    }
-
     private void Move()
     {
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            _currentTarget,
-            _speed * Time.deltaTime
-        );
+        transform.position = Vector3.MoveTowards(transform.position, _currentTarget, _speed * Time.deltaTime);
     }
 
-    private void CheckWaypointReached()
+    private bool IsWaypointReached()
     {
-        float distance = Vector3.Distance(transform.position, _currentTarget);
+        float sqrDistance = (transform.position - _currentTarget).sqrMagnitude;
 
-        if (distance <= _waypointTolerance)
-        {
-            PointReached?.Invoke();
-            MoveToNextWaypoint();
-        }
+        return sqrDistance <= _sqrWaypointTolerance;
     }
 
     private void MoveToNextWaypoint()
@@ -101,20 +99,5 @@ public class PatrolMover : MonoBehaviour
 
         _currentPointIndex = (_currentPointIndex + 1) % _patrolPoints.Count;
         _currentTarget = _patrolPoints[_currentPointIndex].position;
-    }
-
-    // Опционально: добавить задержку на точках
-    public void WaitAtWaypoint(float duration)
-    {
-        if (duration <= 0)
-            return;
-
-        _isWaiting = true;
-        Invoke(nameof(ResumePatrol), duration);
-    }
-
-    private void ResumePatrol()
-    {
-        _isWaiting = false;
     }
 }

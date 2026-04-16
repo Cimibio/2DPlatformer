@@ -86,12 +86,7 @@ public class TargetDetector : MonoBehaviour
         float distance = direction.magnitude;
         bool previousLineOfSight = _hasLineOfSight;
 
-        RaycastHit2D hit = Physics2D.Raycast(
-            transform.position,
-            direction,
-            distance,
-            _obstacleLayer
-        );
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, _obstacleLayer);
 
         _hasLineOfSight = hit.collider == null;
 
@@ -101,7 +96,6 @@ public class TargetDetector : MonoBehaviour
             TargetPositionUpdated?.Invoke(_lastKnownPosition);
         }
 
-        // Оповещаем об изменении видимости
         if (_hasLineOfSight && !previousLineOfSight)
         {
             if (_debugMode)

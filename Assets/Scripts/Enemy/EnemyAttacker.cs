@@ -59,8 +59,8 @@ public class EnemyAttacker : MonoBehaviour
         if (_currentTarget == null)
             return false;
 
-        float distance = Vector2.Distance(transform.position, _currentTarget.position);
-        return distance <= _attackRange;
+        Vector2 offset = (Vector2)_currentTarget.position - (Vector2)transform.position;
+        return offset.sqrMagnitude <= _attackRange * _attackRange;
     }
 
     public void Attack()

@@ -18,6 +18,7 @@ public class Player : MonoBehaviour, IDamageable
     private Mover _mover;
     private Rigidbody2D _rigidbody;
     private WaitForSeconds _stunDuration;
+    private PlayerAnimator _animator;
 
     private float _currentHealth;
     private int _score = 0;
@@ -27,7 +28,6 @@ public class Player : MonoBehaviour, IDamageable
     public bool CanMove => IsAlive && !_isStunned;
     public int Score => _score;
 
-    public event Action Hitted;
     public event Action Died;
 
     private void Awake()
@@ -35,6 +35,7 @@ public class Player : MonoBehaviour, IDamageable
         _inputReader = GetComponent<PlayerInputReader>();
         _mover = GetComponent<Mover>();
         _rigidbody = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<PlayerAnimator>();
 
         _stunDuration = new WaitForSeconds(_hitStunDuration);
         _currentHealth = _maxHealth;
@@ -65,7 +66,7 @@ public class Player : MonoBehaviour, IDamageable
 
         _currentHealth -= damage;
 
-        Hitted?.Invoke();
+        _animator.PlayHitAnimation();
 
         Debug.Log($"[Player] Took {damage} damage. Health: {_currentHealth}/{_maxHealth}");
 
@@ -136,9 +137,8 @@ public class Player : MonoBehaviour, IDamageable
         Debug.Log("[Player] Died!");
 
         Died?.Invoke();
+        _animator.PlayDieAnimation();
         _inputReader.enabled = false;
         _mover.enabled = false;
-
-        // TODO: Рестарт уровня, экран смерти и т.д.
     }
 }

@@ -16,15 +16,15 @@ public class PlayerAttacker : MonoBehaviour
     private bool _isAttackCharged = true;
     private float _cooldownTimer;
     private PlayerInputReader _inputReader;
+    private PlayerAnimator _animator;
 
     public bool CanAttack => _isAttackCharged;
     public bool IsAttacking { get; private set; }
 
-    public event Action AttackStarted;
-
     private void Awake()
     {      
         _inputReader = GetComponent<PlayerInputReader>();
+        _animator = GetComponent<PlayerAnimator>();
     }
 
     private void Update()
@@ -53,7 +53,7 @@ public class PlayerAttacker : MonoBehaviour
     private void PerformAttack()
     {
         IsAttacking = true;
-        AttackStarted?.Invoke();
+        _animator.PlayAttackAnimation();
 
         Vector2 attackDirection = GetAttackDirection();
         IDamageable hitTarget = FindTargetInAttackZone(attackDirection);

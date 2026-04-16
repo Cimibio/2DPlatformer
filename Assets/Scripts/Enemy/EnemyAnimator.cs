@@ -4,12 +4,12 @@ using System;
 [RequireComponent(typeof(Animator))]
 public class EnemyAnimator : MonoBehaviour
 {
-    private Animator _animator;
-    private Rigidbody2D _rigidbody;
-
     private readonly int _speedXHash = Animator.StringToHash("speedX");
     private readonly int _hitHash = Animator.StringToHash("hit");
     private readonly int _dieHash = Animator.StringToHash("die");
+
+    private Animator _animator;
+    private Rigidbody2D _rigidbody;
 
     public event Action EnemyDeathAnimationCompleted;
 
