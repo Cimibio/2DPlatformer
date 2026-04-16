@@ -79,10 +79,12 @@ public class PlayerAttacker : MonoBehaviour
 
     private Vector2 GetAttackDirection()
     {
-        if (Mathf.Approximately(transform.localScale.x, 1))
-            return Vector2.right;
-        else
-            return Vector2.left;
+        if (TryGetComponent(out Mover mover))
+        {
+            return mover.IsFacingRight ? Vector2.right : Vector2.left;
+        }
+
+        return transform.rotation.y == 0 ? Vector2.right : Vector2.left;
     }
 
     private IDamageable FindTargetInAttackZone(Vector2 direction)
@@ -94,9 +96,11 @@ public class PlayerAttacker : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            if (hit == null) continue;
+            if (hit == null) 
+                continue;
 
-            if (hit.isTrigger) continue;
+            if (hit.isTrigger) 
+                continue;
 
             if (hit.TryGetComponent(out IDamageable target) && target.IsAlive)
             {

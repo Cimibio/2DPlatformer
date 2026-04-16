@@ -22,17 +22,13 @@ public abstract class Collectable : MonoBehaviour, IPickupable
         _isCollected = false;
         _collideDetector.enabled = true;
         _collideDetector.Collided += Collect;
-
-        if (_animator != null)
-            _animator.CollectionAnimationCompleted += NotifyItemCollection;
+        _animator.CollectionAnimationCompleted += NotifyItemCollection;
     }
 
     protected virtual void OnDisable()
     {
         _collideDetector.Collided -= Collect;
-
-        if (_animator != null)
-            _animator.CollectionAnimationCompleted -= NotifyItemCollection;
+        _animator.CollectionAnimationCompleted -= NotifyItemCollection;
     }
 
     protected virtual void Collect(Collider2D other)
@@ -71,7 +67,6 @@ public abstract class Collectable : MonoBehaviour, IPickupable
 
     public virtual void PickUp()
     {
-        if (_animator != null)
-            _animator.PlayDisappearAnimation();
+        _animator.PlayDisappearAnimation();
     }
 }

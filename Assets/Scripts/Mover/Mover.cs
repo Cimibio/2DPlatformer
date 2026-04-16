@@ -13,6 +13,8 @@ public class Mover : MonoBehaviour
 
     public event Action Flipped;
 
+    public bool IsFacingRight => _isFacingRight;
+
     private void Awake() => _rigidbody = GetComponent<Rigidbody2D>();
 
     public void Move(float direction, float speed)
