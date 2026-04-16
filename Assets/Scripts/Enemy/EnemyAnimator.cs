@@ -1,11 +1,10 @@
 using UnityEngine;
 using System;
 
-[RequireComponent(typeof(Animator), typeof(PatrolMover))]
+[RequireComponent(typeof(Animator))]
 public class EnemyAnimator : MonoBehaviour
 {
     private Animator _animator;
-    private PatrolMover _mover;
     private Rigidbody2D _rigidbody;
 
     private readonly int _speedXHash = Animator.StringToHash("speedX");
@@ -17,7 +16,6 @@ public class EnemyAnimator : MonoBehaviour
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        _mover = GetComponent<PatrolMover>();
         _rigidbody = GetComponent<Rigidbody2D>();
     }
 

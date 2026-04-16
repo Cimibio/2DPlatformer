@@ -9,56 +9,28 @@ public class PlayerAttacker : MonoBehaviour
     [SerializeField] private float _attackRange = 1.5f;
     [SerializeField] private float _attackCooldown = 0.5f;
     [SerializeField] private float _attackWidth = 1f;
+    [SerializeField] private float _damage = 30f;
     [SerializeField] private LayerMask _targetLayer;
     [SerializeField] private bool _debugMode = true;
 
-    private float _damage = 0;
     private bool _isAttackCharged = true;
     private float _cooldownTimer;
-    private IDamageable _player;
     private PlayerInputReader _inputReader;
-    private Transform _transform;
 
-    public bool CanAttack => _isAttackCharged && _player.IsAlive;
+    public bool CanAttack => _isAttackCharged;
     public bool IsAttacking { get; private set; }
 
     public event Action AttackStarted;
-    public event Action<IDamageable> AttackHit;
-    public event Action AttackMissed;
-    public event Action AttackCompleted;
 
     private void Awake()
-    {
-        _transform = transform;        
+    {      
         _inputReader = GetComponent<PlayerInputReader>();
-
-        if (TryGetComponent(out IDamageable damageable))
-        {
-            _player = damageable;            
-        }
-        else
-        {
-            Debug.LogError($"[{gameObject.name}] PlayerAttacker requires Player component!");
-            enabled = false;
-            return;
-        }
-
-        if (TryGetComponent(out IAttackable attacker))
-        {
-            _damage = attacker.Damage;
-        }
-        else
-        {
-            Debug.LogError($"[{gameObject.name}] Requires IAttackable component!");
-            enabled = false;
-        }
     }
 
     private void Update()
     {
         ChargeAttack();
 
-        // Проверка ввода через InputReader
         if (CanAttack && _inputReader.IsAttackPressed)
         {
             PerformAttack();
@@ -83,31 +55,22 @@ public class PlayerAttacker : MonoBehaviour
         IsAttacking = true;
         AttackStarted?.Invoke();
 
-        // Определяем направление атаки
         Vector2 attackDirection = GetAttackDirection();
-
-        // Находим цель
         IDamageable hitTarget = FindTargetInAttackZone(attackDirection);
 
         if (hitTarget != null)
         {
-            // Попали по цели
             hitTarget.TakeDamage(_damage);
-            AttackHit?.Invoke(hitTarget);
 
             if (_debugMode)
                 Debug.Log($"[{gameObject.name}] Hit {hitTarget} for {_damage} damage!");
         }
         else
         {
-            // Промах
-            AttackMissed?.Invoke();
-
             if (_debugMode)
                 Debug.Log($"[{gameObject.name}] Attack missed!");
         }
 
-        // Запускаем кулдаун
         _isAttackCharged = false;
         _cooldownTimer = _attackCooldown;
 
@@ -116,7 +79,7 @@ public class PlayerAttacker : MonoBehaviour
 
     private Vector2 GetAttackDirection()
     {
-        if (Mathf.Approximately(_transform.localScale.x, 1))
+        if (Mathf.Approximately(transform.localScale.x, 1))
             return Vector2.right;
         else
             return Vector2.left;
@@ -124,7 +87,7 @@ public class PlayerAttacker : MonoBehaviour
 
     private IDamageable FindTargetInAttackZone(Vector2 direction)
     {
-        Vector2 center = (Vector2)_transform.position + direction * (_attackRange * 0.5f);
+        Vector2 center = (Vector2)transform.position + direction * (_attackRange * 0.5f);
         Vector2 boxSize = new Vector2(_attackRange, _attackWidth);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, 0f, _targetLayer);
@@ -148,19 +111,14 @@ public class PlayerAttacker : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         IsAttacking = false;
-        AttackCompleted?.Invoke();
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (!Application.isPlaying)
-        {
-            DrawAttackZone(Vector2.right);
-        }
-        else
-        {
-            DrawAttackZone(GetAttackDirection());
-        }
+        if (!Application.isPlaying)        
+            DrawAttackZone(Vector2.right);        
+        else        
+            DrawAttackZone(GetAttackDirection());        
     }
 
     private void DrawAttackZone(Vector2 direction)

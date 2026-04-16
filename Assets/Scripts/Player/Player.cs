@@ -4,7 +4,7 @@ using System;
 
 [RequireComponent(typeof(PlayerInputReader), typeof(Mover), typeof(FallDetector))]
 [RequireComponent(typeof(PlayerAnimator))]
-public class Player : MonoBehaviour, IDamageable, IAttackable
+public class Player : MonoBehaviour, IDamageable
 {
     [Header("Settings")]
     [SerializeField] private float _speed = 4f;
@@ -12,23 +12,18 @@ public class Player : MonoBehaviour, IDamageable, IAttackable
 
     [Header("Combat Settings")]
     [SerializeField] private float _maxHealth = 100f;
-    [SerializeField] private float _damage = 30f;
     [SerializeField] private float _hitStunDuration = 0.5f;
 
     private PlayerInputReader _inputReader;
     private Mover _mover;
-    private FallDetector _fallDetector;
-    private PlayerAnimator _animator;
     private Rigidbody2D _rigidbody;
     private WaitForSeconds _stunDuration;
 
     private float _currentHealth;
-    //private bool _isAlive = true;
     private bool _isStunned = false;
 
     public bool IsAlive => _currentHealth > 0;
     public bool CanMove => IsAlive && !_isStunned;
-    public float Damage => _damage;
 
     public event Action Hitted;
     public event Action Died;
@@ -37,8 +32,6 @@ public class Player : MonoBehaviour, IDamageable, IAttackable
     {
         _inputReader = GetComponent<PlayerInputReader>();
         _mover = GetComponent<Mover>();
-        _fallDetector = GetComponent<FallDetector>();
-        _animator = GetComponent<PlayerAnimator>();
         _rigidbody = GetComponent<Rigidbody2D>();
 
         _stunDuration = new WaitForSeconds(_hitStunDuration);
@@ -53,7 +46,6 @@ public class Player : MonoBehaviour, IDamageable, IAttackable
         }
         else if (_isStunned)
         {
-            // Останавливаем движение при стане
             _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
         }
     }
@@ -85,14 +77,26 @@ public class Player : MonoBehaviour, IDamageable, IAttackable
         }
     }
 
+    public void Reset()
+    {
+        _currentHealth = _maxHealth;
+        _isStunned = false;
+
+        if (_inputReader != null)
+            _inputReader.enabled = true;
+
+        if (_mover != null)
+            _mover.enabled = true;
+
+        if (_rigidbody != null)
+            _rigidbody.velocity = Vector2.zero;
+
+        StopAllCoroutines();
+    }
+
     private IEnumerator HitStunCoroutine()
     {
         _isStunned = true;
-
-        // Проигрываем анимацию получения урона
-        //_animator.PlayHitAnimation();
-
-        // Блокируем ввод
         _inputReader.enabled = false;
 
         yield return _stunDuration;
@@ -108,7 +112,6 @@ public class Player : MonoBehaviour, IDamageable, IAttackable
         Debug.Log("[Player] Died!");
 
         Died?.Invoke();
-        //_animator.PlayDieAnimation();
         _inputReader.enabled = false;
         _mover.enabled = false;
 

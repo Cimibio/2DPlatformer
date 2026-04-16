@@ -5,10 +5,10 @@ public class EnemyAttacker : MonoBehaviour
     [Header("Attack Settings")]
     [SerializeField] private float _attackRange = 1.5f;
     [SerializeField] private float _attackCooldown = 1f;
+    [SerializeField] private float _damage = 10;
     [SerializeField] private LayerMask _targetLayer;
     [SerializeField] private bool _debugMode = true;
 
-    private float _damage = 0;
     private Transform _currentTarget;
     private IDamageable _currentDamageable;
     private bool _isAttackCharged = true;
@@ -22,19 +22,6 @@ public class EnemyAttacker : MonoBehaviour
                 return false;
 
             return _currentDamageable != null && _currentDamageable.IsAlive;
-        }
-    }
-
-    private void Awake()
-    {
-        if (TryGetComponent(out IAttackable attacker))
-        {
-            _damage = attacker.Damage;
-        }
-        else
-        {
-            Debug.LogError($"[{gameObject.name}] Requires IAttackable component! Attacker disabled.");
-            enabled = false;
         }
     }
 

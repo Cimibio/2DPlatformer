@@ -14,8 +14,10 @@ public class CameraFollower : MonoBehaviour
 
     private void Awake()
     {
-        _target.TryGetComponent(out _mover);
         _camera = GetComponent<Camera>();
+
+        if (_target != null)        
+            _target.TryGetComponent(out _mover);        
     }
 
     private void OnEnable()
@@ -26,10 +28,10 @@ public class CameraFollower : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_target == null) return;
+        if (_target == null)
+            return;
 
-        Vector3 targetPosition = new Vector3(_target.position.x + _offset.x, _target.position.y + _offset.y,
-                                             _zOffset);
+        Vector3 targetPosition = new Vector3(_target.position.x + _offset.x, _target.position.y + _offset.y, _zOffset);
 
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref _velocity, 1f / _smoothSpeed);
     }
@@ -37,6 +39,28 @@ public class CameraFollower : MonoBehaviour
     {
         if (_mover != null)
             _mover.Flipped -= InvertXOffset;
+    }
+
+    public void SetTarget(Transform target)
+    {
+        if (_mover != null)
+            _mover.Flipped -= InvertXOffset;
+
+        _target = target;
+
+        if (_target != null)
+        {
+            _target.TryGetComponent(out _mover);
+
+            if (_mover != null)
+                _mover.Flipped += InvertXOffset;
+        }
+        else
+        {
+            _mover = null;
+        }
+
+        _velocity = Vector3.zero;
     }
 
     private void InvertXOffset()

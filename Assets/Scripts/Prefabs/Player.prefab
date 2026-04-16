@@ -165,7 +165,6 @@ MonoBehaviour:
   _speed: 4
   _jumpForce: 8
   _maxHealth: 100
-  _damage: 30
   _hitStunDuration: 0.5
 --- !u!114 &983197051128760870
 MonoBehaviour:
@@ -262,6 +261,7 @@ MonoBehaviour:
   _attackRange: 1.5
   _attackCooldown: 0.5
   _attackWidth: 1
+  _damage: 30
   _targetLayer:
     serializedVersion: 2
     m_Bits: 512

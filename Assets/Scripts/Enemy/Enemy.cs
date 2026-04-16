@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
-[RequireComponent(typeof(FallDetector), typeof(EnemyAnimator))]
-public class Enemy : MonoBehaviour, IDamageable, IAttackable
+[RequireComponent(typeof(FallDetector), typeof(EnemyAnimator), typeof(SlimeEnemyBehavior))]
+public class Enemy : MonoBehaviour, IDamageable
 {
     [Header("Combat Settings")]
     [SerializeField] private float _maxHealth = 30f;
-    [SerializeField] private float _damage = 10f;
 
     private float _currentHealth;
-
     private PatrolMover _patrolMover;
     private Chaser _chaser;
     private TargetDetector _targeter;
@@ -27,7 +25,6 @@ public class Enemy : MonoBehaviour, IDamageable, IAttackable
     public Chaser Chaser => _chaser;
     public TargetDetector Targeter => _targeter;
     public bool IsAlive => _currentHealth > 0;
-    public float Damage => _damage;
 
     private void Awake()
     {
@@ -37,11 +34,6 @@ public class Enemy : MonoBehaviour, IDamageable, IAttackable
         _fallDetector = GetComponent<FallDetector>();
         _animator = GetComponent<EnemyAnimator>();
         _behavior = GetComponent<EnemyBehavior>();
-
-        if (_behavior == null)
-        {
-            Debug.LogError($"[{gameObject.name}] No EnemyBehavior component found! Please add a behavior component.");
-        }
 
         _currentHealth = _maxHealth;
     }
@@ -58,16 +50,10 @@ public class Enemy : MonoBehaviour, IDamageable, IAttackable
         _animator.EnemyDeathAnimationCompleted -= Die;
     }
 
-    private void Update()
-    {
-        if (!IsAlive) 
-            return;
-    }
-
     public void Init(IReadOnlyList<Transform> patrolPoints)
     {
         _patrolMover.SetPatrolPoints(patrolPoints);
-        _behavior?.Init();
+        _behavior.Init();
         _currentHealth = _maxHealth;
     }
 
