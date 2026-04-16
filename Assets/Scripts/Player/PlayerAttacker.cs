@@ -116,7 +116,6 @@ public class PlayerAttacker : MonoBehaviour
 
     private Vector2 GetAttackDirection()
     {
-        // Определяем направление по повороту спрайта
         if (Mathf.Approximately(_transform.localScale.x, 1))
             return Vector2.right;
         else
@@ -125,24 +124,20 @@ public class PlayerAttacker : MonoBehaviour
 
     private IDamageable FindTargetInAttackZone(Vector2 direction)
     {
-        // BoxCast - атака прямоугольной зоной
+        Vector2 center = (Vector2)_transform.position + direction * (_attackRange * 0.5f);
         Vector2 boxSize = new Vector2(_attackRange, _attackWidth);
-        Vector2 origin = (Vector2)_transform.position + direction * (_attackRange * 0.5f);
 
-        RaycastHit2D[] hits = Physics2D.BoxCastAll(origin, boxSize, 0f, direction, 0f, _targetLayer);
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, 0f, _targetLayer);
 
-        // Ищем первую живую цель
         foreach (var hit in hits)
         {
-            if (hit.collider == null)
-                continue;
+            if (hit == null) continue;
 
-            if (hit.collider.TryGetComponent(out IDamageable target))
+            if (hit.isTrigger) continue;
+
+            if (hit.TryGetComponent(out IDamageable target) && target.IsAlive)
             {
-                if (target.IsAlive)
-                {
-                    return target;
-                }
+                return target;
             }
         }
 
