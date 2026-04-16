@@ -6,12 +6,14 @@ public class EnemySpawner : OneTimeSpawner<Enemy, EnemySpawnPoint>
     {
         base.InitializeItem(enemy, spawnPoint);
         enemy.Init(spawnPoint.PatrolPoints);
-        enemy.Falled += HandleEnemyFall;
+        enemy.Falled += HandleEnemyDeath;
+        enemy.Died += HandleEnemyDeath;
     }
 
-    private void HandleEnemyFall(Enemy enemy)
+    private void HandleEnemyDeath(Enemy enemy)
     {
-        enemy.Falled -= HandleEnemyFall;
+        enemy.Falled -= HandleEnemyDeath;
+        enemy.Died -= HandleEnemyDeath;
         ReleaseToPool(enemy);
     }
 }

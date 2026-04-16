@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
-[RequireComponent(typeof(FallDetector))]
-public class Enemy : MonoBehaviour, IChasable, IDamageable
+[RequireComponent(typeof(FallDetector), typeof(EnemyAnimator))]
+public class Enemy : MonoBehaviour, IDamageable, IAttackable
 {
     [Header("Combat Settings")]
     [SerializeField] private float _maxHealth = 30f;
@@ -18,8 +18,6 @@ public class Enemy : MonoBehaviour, IChasable, IDamageable
     private FallDetector _fallDetector;
     private EnemyBehavior _behavior;
     private EnemyAnimator _animator;
-
-    //private bool _isAlive = true;
 
     public event Action<Enemy> Falled;
     public event Action<float, float> HealthChanged;
@@ -51,11 +49,13 @@ public class Enemy : MonoBehaviour, IChasable, IDamageable
     private void OnEnable()
     {
         _fallDetector.Falled += Fall;
+        _animator.EnemyDeathAnimationCompleted += Die;
     }
 
     private void OnDisable()
     {
         _fallDetector.Falled -= Fall;
+        _animator.EnemyDeathAnimationCompleted -= Die;
     }
 
     private void Update()
@@ -84,8 +84,8 @@ public class Enemy : MonoBehaviour, IChasable, IDamageable
         if (_animator != null)        
             _animator.PlayHitAnimation();        
 
-        if (_currentHealth <= 0)        
-            Die();        
+        if (_currentHealth <= 0)
+            _animator.PlayDieAnimation();        
     }
 
     private void Die()
@@ -98,13 +98,10 @@ public class Enemy : MonoBehaviour, IChasable, IDamageable
         _patrolMover.StopPatrol();
 
         Died?.Invoke(this);
-
-        // TODO: Проиграть анимацию смерти, отключить коллайдеры и т.д.
     }
 
     private void Fall()
     {
-        //_isAlive = false;
         Falled?.Invoke(this);
     }
 }

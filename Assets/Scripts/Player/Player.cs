@@ -4,7 +4,7 @@ using System;
 
 [RequireComponent(typeof(PlayerInputReader), typeof(Mover), typeof(FallDetector))]
 [RequireComponent(typeof(PlayerAnimator))]
-public class Player : MonoBehaviour, IChasable, IDamageable
+public class Player : MonoBehaviour, IDamageable, IAttackable
 {
     [Header("Settings")]
     [SerializeField] private float _speed = 4f;
@@ -12,6 +12,7 @@ public class Player : MonoBehaviour, IChasable, IDamageable
 
     [Header("Combat Settings")]
     [SerializeField] private float _maxHealth = 100f;
+    [SerializeField] private float _damage = 30f;
     [SerializeField] private float _hitStunDuration = 0.5f;
 
     private PlayerInputReader _inputReader;
@@ -27,6 +28,7 @@ public class Player : MonoBehaviour, IChasable, IDamageable
 
     public bool IsAlive => _currentHealth > 0;
     public bool CanMove => IsAlive && !_isStunned;
+    public float Damage => _damage;
 
     public event Action Hitted;
     public event Action Died;

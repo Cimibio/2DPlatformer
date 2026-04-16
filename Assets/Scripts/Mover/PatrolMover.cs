@@ -49,7 +49,7 @@ public class PatrolMover : MonoBehaviour
         }
     }
 
-    public void StartPatrol()
+    public void Patrol()
     {
         if (_patrolPoints.Count == 0)
         {

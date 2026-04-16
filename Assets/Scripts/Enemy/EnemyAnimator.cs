@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System;
 
 [RequireComponent(typeof(Animator), typeof(PatrolMover))]
 public class EnemyAnimator : MonoBehaviour
@@ -11,6 +11,8 @@ public class EnemyAnimator : MonoBehaviour
     private readonly int _speedXHash = Animator.StringToHash("speedX");
     private readonly int _hitHash = Animator.StringToHash("hit");
     private readonly int _dieHash = Animator.StringToHash("die");
+
+    public event Action EnemyDeathAnimationCompleted;
 
     private void Awake()
     {
@@ -33,5 +35,11 @@ public class EnemyAnimator : MonoBehaviour
     public void PlayDieAnimation()
     {
         _animator.SetTrigger(_dieHash);
+    }
+
+    public void NotifyDeathAnimationComplete()
+    {
+        Debug.Log($"EnemyAnimator: Death animation completed on {gameObject.name}");
+        EnemyDeathAnimationCompleted?.Invoke();
     }
 }

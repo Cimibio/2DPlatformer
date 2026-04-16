@@ -40,7 +40,7 @@ public class Chaser : MonoBehaviour
         MoveTowardsTarget();
     }
 
-    public void StartChase(Vector3 targetPosition)
+    public void Chase(Vector3 targetPosition)
     {
         _isChasing = true;
         _currentTarget = targetPosition;

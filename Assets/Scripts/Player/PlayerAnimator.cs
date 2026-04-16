@@ -7,12 +7,14 @@ public class PlayerAnimator : MonoBehaviour
     private Mover _mover;
     private Rigidbody2D _rigidbody;
     private Player _player;
+    private PlayerAttacker _attacker;
 
     private readonly int _speedXHash = Animator.StringToHash("speedX");
     private readonly int _speedYHash = Animator.StringToHash("speedY");
     private readonly int _isGroundedHash = Animator.StringToHash("isGrounded");
     private readonly int _hitHash = Animator.StringToHash("hurt");
     private readonly int _dieHash = Animator.StringToHash("die");
+    private readonly int _attackHash = Animator.StringToHash("attack");
 
     private void Awake()
     {
@@ -20,17 +22,20 @@ public class PlayerAnimator : MonoBehaviour
         _mover = GetComponent<Mover>();
         _rigidbody = GetComponent<Rigidbody2D>();
         _player = GetComponent<Player>();
+        _attacker = GetComponent<PlayerAttacker>();
     }
     private void OnEnable()
     {
         _player.Hitted += PlayHitAnimation;
         _player.Died += PlayDieAnimation;
+        _attacker.AttackStarted += PlayAttackAnimation;
     }
 
     private void OnDisable()
     {
         _player.Hitted -= PlayHitAnimation;
         _player.Died -= PlayDieAnimation;
+        _attacker.AttackStarted -= PlayAttackAnimation;
     }
 
     private void Update()
@@ -53,5 +58,10 @@ public class PlayerAnimator : MonoBehaviour
     private void PlayDieAnimation()
     {
         _animator.SetTrigger(_dieHash);
+    }
+
+    private void PlayAttackAnimation()
+    {
+        _animator.SetTrigger(_attackHash);
     }
 }
