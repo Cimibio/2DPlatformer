@@ -20,10 +20,12 @@ public class Player : MonoBehaviour, IDamageable
     private WaitForSeconds _stunDuration;
 
     private float _currentHealth;
+    private int _score = 0;
     private bool _isStunned = false;
 
     public bool IsAlive => _currentHealth > 0;
     public bool CanMove => IsAlive && !_isStunned;
+    public int Score => _score;
 
     public event Action Hitted;
     public event Action Died;
@@ -92,6 +94,30 @@ public class Player : MonoBehaviour, IDamageable
             _rigidbody.velocity = Vector2.zero;
 
         StopAllCoroutines();
+    }
+
+    public void Heal(float amount)
+    {
+        if (!IsAlive)
+            return;
+
+        float oldHealth = _currentHealth;
+        _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
+
+        float actualHeal = _currentHealth - oldHealth;
+
+        if (actualHeal > 0)
+        {
+            //HealthChanged?.Invoke(_currentHealth, _maxHealth);
+            Debug.Log($"[Player] Healed {actualHeal}. Health: {_currentHealth}/{_maxHealth}");
+        }
+    }
+
+    public void AddScore(int amount)
+    {
+        _score += amount;
+        //ScoreChanged?.Invoke(_score);
+        Debug.Log($"[Player] Score increased by {amount}. Total score: {_score}");
     }
 
     private IEnumerator HitStunCoroutine()
