@@ -157,6 +157,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4eb26fa5e8f640549a9217c871fed71e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  _debugMode: 1
 --- !u!114 &3516585116372051697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,3 +185,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7cafe5e54a631f469833e689001684b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _healAmount: 10
