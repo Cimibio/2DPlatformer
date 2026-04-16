@@ -108,7 +108,6 @@ public class Player : MonoBehaviour, IDamageable
 
         if (actualHeal > 0)
         {
-            //HealthChanged?.Invoke(_currentHealth, _maxHealth);
             Debug.Log($"[Player] Healed {actualHeal}. Health: {_currentHealth}/{_maxHealth}");
         }
     }
@@ -116,7 +115,6 @@ public class Player : MonoBehaviour, IDamageable
     public void AddScore(int amount)
     {
         _score += amount;
-        //ScoreChanged?.Invoke(_score);
         Debug.Log($"[Player] Score increased by {amount}. Total score: {_score}");
     }
 

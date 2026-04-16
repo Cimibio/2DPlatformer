@@ -3,38 +3,50 @@ using UnityEngine;
 
 public class CollideDetector : MonoBehaviour
 {
-    [SerializeField] private LayerMask _targetLayer;
-    [SerializeField] private bool _debugMode = true;
+    [SerializeField] protected LayerMask _targetLayer;
+    [SerializeField] protected bool _debugMode = true;
 
-    private Collider2D _collider;
-    private int _targetLayerValue;
+    protected int _targetLayerValue;
 
-    public event Action Collided;
+    public event Action<Collider2D> Collided;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         _targetLayerValue = _targetLayer.value;
 
-        if (TryGetComponent(out Collider2D collider))
-        {
-            _collider = collider;
-            _collider.isTrigger = true;
-        }
-        else
+        if (!TryGetComponent(out Collider2D collider))
         {
             Debug.LogError($"[{gameObject.name}] CollideDetector requires a Collider2D component!");
             enabled = false;
+            return;
         }
+
+        SetupCollider(collider);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    protected virtual void SetupCollider(Collider2D collider)
     {
-        if ((_targetLayerValue & (1 << other.gameObject.layer)) != 0)
+        collider.isTrigger = true;
+    }
+
+    protected virtual void OnTriggerEnter2D(Collider2D other)
+    {
+        if (IsTargetLayer(other))
         {
-            Collided?.Invoke();
+            Collided?.Invoke(other);
 
             if (_debugMode)
                 Debug.Log($"[{gameObject.name}] Detected collision with {other.gameObject.name}");
+
+            HandleCollision(other);
         }
     }
+
+    protected virtual bool IsTargetLayer(Collider2D other)
+    {
+        return (_targetLayerValue & (1 << other.gameObject.layer)) != 0;
+    }
+
+    protected virtual void HandleCollision(Collider2D other)
+    {    }
 }
