@@ -56,7 +56,7 @@ public class PlayerAttacker : MonoBehaviour
         _animator.PlayAttackAnimation();
 
         Vector2 attackDirection = GetAttackDirection();
-        IDamageable hitTarget = FindTargetInAttackZone(attackDirection);
+        Health hitTarget = FindTargetInAttackZone(attackDirection);
 
         if (hitTarget != null)
         {
@@ -87,7 +87,7 @@ public class PlayerAttacker : MonoBehaviour
         return transform.rotation.y == 0 ? Vector2.right : Vector2.left;
     }
 
-    private IDamageable FindTargetInAttackZone(Vector2 direction)
+    private Health FindTargetInAttackZone(Vector2 direction)
     {
         Vector2 center = (Vector2)transform.position + direction * (_attackRange * 0.5f);
         Vector2 boxSize = new Vector2(_attackRange, _attackWidth);
@@ -102,7 +102,7 @@ public class PlayerAttacker : MonoBehaviour
             if (hit.isTrigger) 
                 continue;
 
-            if (hit.TryGetComponent(out IDamageable target) && target.IsAlive)
+            if (hit.TryGetComponent(out Health target) && target.IsAlive)
             {
                 return target;
             }

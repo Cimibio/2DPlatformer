@@ -33,6 +33,7 @@ public class PlayerAnimator : MonoBehaviour
         _animator.SetFloat(_speedYHash, verticalVelocity);
         _animator.SetBool(_isGroundedHash, isGrounded);
     }
+
     public void PlayHitAnimation()
     {
         _animator.SetTrigger(_hitHash);

@@ -10,7 +10,7 @@ public class EnemyAttacker : MonoBehaviour
     [SerializeField] private bool _debugMode = true;
 
     private Transform _currentTarget;
-    private IDamageable _currentDamageable;
+    private Health _currentTargetHealth;
     private bool _isAttackCharged = true;
     private float _cooldownTimer;
 
@@ -21,7 +21,7 @@ public class EnemyAttacker : MonoBehaviour
             if (!_isAttackCharged || _currentTarget == null)
                 return false;
 
-            return _currentDamageable != null && _currentDamageable.IsAlive;
+            return _currentTargetHealth != null && _currentTargetHealth.IsAlive;
         }
     }
 
@@ -43,15 +43,15 @@ public class EnemyAttacker : MonoBehaviour
         _currentTarget = target;
 
         if (target != null)
-            target.TryGetComponent(out _currentDamageable);
+            target.TryGetComponent(out _currentTargetHealth);
         else
-            _currentDamageable = null;
+            _currentTargetHealth = null;
     }
 
     public void ClearTarget()
     {
         _currentTarget = null;
-        _currentDamageable = null;
+        _currentTargetHealth = null;
     }
 
     public bool IsTargetInAttackRange()
@@ -65,11 +65,11 @@ public class EnemyAttacker : MonoBehaviour
 
     public void Attack()
     {
-        if (!CanAttack || _currentDamageable == null)
+        if (!CanAttack || _currentTargetHealth == null)
             return;
 
         if (IsTargetInAttackRange())
-            _currentDamageable.TakeDamage(_damage);
+            _currentTargetHealth.TakeDamage(_damage);
 
         if (_debugMode)
             Debug.Log($"[{gameObject.name}] Attacked {_currentTarget.name} for {_damage} damage!");

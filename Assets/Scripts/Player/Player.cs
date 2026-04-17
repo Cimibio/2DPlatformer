@@ -3,15 +3,14 @@ using System.Collections;
 using System;
 
 [RequireComponent(typeof(PlayerInputReader), typeof(Mover), typeof(FallDetector))]
-[RequireComponent(typeof(PlayerAnimator))]
-public class Player : MonoBehaviour, IDamageable
+[RequireComponent(typeof(PlayerAnimator), typeof(Health))]
+public class Player : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField] private float _speed = 4f;
     [SerializeField] private float _jumpForce = 4f;
 
     [Header("Combat Settings")]
-    [SerializeField] private float _maxHealth = 100f;
     [SerializeField] private float _hitStunDuration = 0.5f;
 
     private PlayerInputReader _inputReader;
@@ -19,14 +18,15 @@ public class Player : MonoBehaviour, IDamageable
     private Rigidbody2D _rigidbody;
     private WaitForSeconds _stunDuration;
     private PlayerAnimator _animator;
+    private Health _health;
 
-    private float _currentHealth;
     private int _score = 0;
     private bool _isStunned = false;
 
-    public bool IsAlive => _currentHealth > 0;
+    public bool IsAlive => _health.IsAlive;
     public bool CanMove => IsAlive && !_isStunned;
     public int Score => _score;
+    public Health Health => _health;
 
     public event Action Died;
 
@@ -36,54 +36,42 @@ public class Player : MonoBehaviour, IDamageable
         _mover = GetComponent<Mover>();
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<PlayerAnimator>();
+        _health = GetComponent<Health>();
 
         _stunDuration = new WaitForSeconds(_hitStunDuration);
-        _currentHealth = _maxHealth;
+    }
+
+    private void OnEnable()
+    {
+        _health.Died += Die;
+        _health.Hitted += Stun;
+    }
+
+    private void OnDisable()
+    {
+        _health.Died -= Die;
+        _health.Hitted -= Stun;
     }
 
     private void FixedUpdate()
     {
-        if (CanMove)
-        {
-            _mover.Move(_inputReader.HorizontalInput, _speed);
-        }
-        else if (_isStunned)
-        {
-            _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
-        }
+        if (CanMove)        
+            _mover.Move(_inputReader.HorizontalInput, _speed);        
+        else if (_isStunned)        
+            _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);        
     }
 
     private void Update()
     {
-        if (_inputReader.IsJumpPressed)
+        if (CanMove && _inputReader.IsJumpPressed)
             _mover.Jump(_jumpForce);
-    }
-
-    public void TakeDamage(float damage)
-    {
-        if (!IsAlive)
-            return;
-
-        _currentHealth -= damage;
-
-        _animator.PlayHitAnimation();
-
-        Debug.Log($"[Player] Took {damage} damage. Health: {_currentHealth}/{_maxHealth}");
-
-        if (_currentHealth <= 0)
-        {
-            Die();
-        }
-        else
-        {
-            StartCoroutine(HitStunCoroutine());
-        }
     }
 
     public void Reset()
     {
-        _currentHealth = _maxHealth;
+        _health.Reset();
         _isStunned = false;
+        _score = 0;
 
         if (_inputReader != null)
             _inputReader.enabled = true;
@@ -97,26 +85,16 @@ public class Player : MonoBehaviour, IDamageable
         StopAllCoroutines();
     }
 
-    public void Heal(float amount)
-    {
-        if (!IsAlive)
-            return;
-
-        float oldHealth = _currentHealth;
-        _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
-
-        float actualHeal = _currentHealth - oldHealth;
-
-        if (actualHeal > 0)
-        {
-            Debug.Log($"[Player] Healed {actualHeal}. Health: {_currentHealth}/{_maxHealth}");
-        }
-    }
-
     public void AddScore(int amount)
     {
         _score += amount;
         Debug.Log($"[Player] Score increased by {amount}. Total score: {_score}");
+    }
+
+    private void Stun()
+    {
+        StartCoroutine(HitStunCoroutine());
+        _animator.PlayHitAnimation();
     }
 
     private IEnumerator HitStunCoroutine()
@@ -132,8 +110,6 @@ public class Player : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        _currentHealth = 0;
-
         Debug.Log("[Player] Died!");
 
         Died?.Invoke();

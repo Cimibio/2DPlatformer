@@ -9,7 +9,8 @@ public class Heart : Collectable
 
     protected override void ApplyEffect(Player player)
     {
-        player.Heal(_healAmount);
+        player.Health.Heal(_healAmount);
+
         Debug.Log($"[Heart] Healed player for {_healAmount}");
     }
 }
