@@ -1,5 +1,6 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class SlimeEnemyBehavior : EnemyBehavior
 {
@@ -7,36 +8,75 @@ public class SlimeEnemyBehavior : EnemyBehavior
     [SerializeField] private float _forgetDelay = 5f;
     [SerializeField] private bool _debugMode = true;
 
-    private State _currentState;
-    private State _defaultState = State.Patrol;
-    private Coroutine _forgetCoroutine;
-    private bool _isForgetting = false;
+    private EnemyState _currentState;
+    private StateFactory _stateFactory;
 
-    private enum State
+    private Dictionary<Type, EnemyState> _stateCache;
+    private Dictionary<StateType, Type> _stateTypeMap;
+
+    public enum StateType
     {
         Patrol,
         Chase,
         Attack,
-        SearchLastPosition
+        Search,
+        Idle
+    }
+
+    public bool DebugMode => _debugMode;
+    public float ForgetDelay => _forgetDelay;
+
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        _stateFactory = new StateFactory(this);
+        InitializeStateTypeMap();
+        InitializeStateCache();
     }
 
     protected override void Update()
     {
-        if (!_enemy.IsAlive) 
+        if (!_enemy.IsAlive)
             return;
 
         UpdateState();
-        ExecuteCurrentState();
+        _currentState?.Update();
     }
 
     public override void Init()
     {
         base.Init();
-        _currentState = _defaultState;
-        _isForgetting = false;
+
+        TransitionToState(GetState<EnemyPatrolState>());
 
         if (!_enemy.Targeter.HasTarget)
             PatrolMover.Patrol();
+    }
+
+    private void InitializeStateCache()
+    {
+        _stateCache = new Dictionary<Type, EnemyState>
+        {
+            { typeof(EnemyPatrolState), _stateFactory.CreatePatrolState() },
+            { typeof(EnemyChaseState), _stateFactory.CreateChaseState() },
+            { typeof(EnemyAttackState), _stateFactory.CreateAttackState() },
+            { typeof(EnemySearchState), _stateFactory.CreateSearchState() },
+            { typeof(EnemyIdleState), _stateFactory.CreateIdleState() }
+        };
+    }
+
+    private void InitializeStateTypeMap()
+    {
+        _stateTypeMap = new Dictionary<StateType, Type>
+        {
+            { StateType.Patrol, typeof(EnemyPatrolState) },
+            { StateType.Chase, typeof(EnemyChaseState) },
+            { StateType.Attack, typeof(EnemyAttackState) },
+            { StateType.Search, typeof(EnemySearchState) },
+            { StateType.Idle, typeof(EnemyIdleState) }
+        };
     }
 
     private void UpdateState()
@@ -44,150 +84,122 @@ public class SlimeEnemyBehavior : EnemyBehavior
         if (!_enemy.IsAlive)
             return;
 
-        State newState = _currentState;
+        StateType newStateType = DetermineStateType();
+        Type targetStateType = _stateTypeMap[newStateType];
+
+        if (_currentState == null || _currentState.GetType() != targetStateType)
+        {
+            EnemyState nextState = GetState(targetStateType);
+            TransitionToState(nextState);
+        }
+    }
+
+    private StateType DetermineStateType()
+    {
+        if (!_enemy.IsAlive)
+            return GetCurrentStateType();
+
+        if (_currentState is EnemyIdleState idleState && !idleState.IsIdleComplete)
+        {
+            if (_enemy.Targeter.HasTarget && _enemy.Targeter.HasLineOfSight)
+            {
+                if (Attacker != null && Attacker.CanAttack && Attacker.IsTargetInAttackRange())
+                    return StateType.Attack;
+                else
+                    return StateType.Chase;
+            }
+
+            return StateType.Idle;
+        }
+
+        if (_currentState is EnemySearchState searchState && !searchState.HasReachedPosition)
+        {
+            return StateType.Search;
+        }
 
         if (_enemy.Targeter.HasTarget && _enemy.Targeter.HasLineOfSight)
         {
             if (Attacker != null && Attacker.CanAttack && Attacker.IsTargetInAttackRange())
-            {
-                newState = State.Attack;                
-            }
+                return StateType.Attack;
             else
-            {
-                newState = State.Chase;
-            }
+                return StateType.Chase;
+
         }
         else if (_enemy.Targeter.HasTarget && !_enemy.Targeter.HasLineOfSight)
         {
-            newState = State.SearchLastPosition;
-        }
-        else if (!_enemy.Targeter.HasTarget && !_isForgetting)
-        {
-            newState = State.Patrol;
+            return StateType.Search;
         }
 
-        if (newState != _currentState)
-        {
-            _currentState = newState;
-            EnterState(_currentState);
-        }
+        return StateType.Patrol;
     }
 
-    private void EnterState(State state)
+    private StateType GetCurrentStateType()
     {
-        switch (state)
+        if (_currentState == null)
+            return StateType.Patrol;
+
+        foreach (var pair in _stateTypeMap)
         {
-            case State.Patrol:
-                if (_debugMode)
-                    Debug.Log($"[{_enemy.name}] Entering Patrol state");
-
-                _isForgetting = false;
-                StopForgetCountdown();
-                Chaser.StopChase();
-                Attacker.ClearTarget();
-                PatrolMover.Patrol();
-                break;
-
-            case State.Chase:
-                if (_debugMode)
-                    Debug.Log($"[{_enemy.name}] Entering Chase state");
-
-                _isForgetting = false;
-                StopForgetCountdown();
-                PatrolMover.StopPatrol();
-                Chaser.Chase(_enemy.Targeter.Target.position);
-                break;
-
-            case State.Attack:
-                if (_debugMode)
-                    Debug.Log($"[{_enemy.name}] Entering Attack state");
-
-                PatrolMover.StopPatrol();
-                Chaser.StopChase();
-                Attacker.SetTarget(_enemy.Targeter.Target);
-                Attacker.Attack();
-                break;
-
-            case State.SearchLastPosition:
-                if (_debugMode)
-                    Debug.Log($"[{_enemy.name}] Entering Search state");
-
-                Chaser.Chase(_enemy.Targeter.LastKnownPosition);
-                Attacker.ClearTarget();
-                BeginForgetCountdown();
-                break;
+            if (pair.Value == _currentState.GetType())
+                return pair.Key;
         }
+
+        return StateType.Patrol;
     }
 
-    private void ExecuteCurrentState()
+    private EnemyState GetState<T>() where T : EnemyState
     {
-        switch (_currentState)
+        return GetState(typeof(T));
+    }
+
+    private EnemyState GetState(Type stateType)
+    {
+        if (_stateCache.TryGetValue(stateType, out EnemyState state))
         {
-            case State.Chase:
-                UpdateChaseState();
-                break;
-
-            case State.Attack:
-                break;
-
-            case State.SearchLastPosition:
-                break;
-
-            case State.Patrol:
-                break;
+            return state;
         }
+
+        Debug.LogError($"[{gameObject.name}] State {stateType.Name} not found in cache!");
+        return _stateCache[typeof(EnemyPatrolState)];
     }
 
-    private void UpdateChaseState()
+    private void TransitionToState(EnemyState newState)
     {
-        if (Chaser.IsChasing)
+        if (_currentState == newState)
         {
-            Chaser.UpdateTarget(_enemy.Targeter.Target.position);
-            Attacker.SetTarget(_enemy.Targeter.Target);
-        }
-    }
-
-    private void BeginForgetCountdown()
-    {
-        StopForgetCountdown();
-        _forgetCoroutine = StartCoroutine(ForgetCountdownCoroutine());
-    }
-
-    private void StopForgetCountdown()
-    {
-        if (_forgetCoroutine != null)
-        {
-            StopCoroutine(_forgetCoroutine);
-            _forgetCoroutine = null;
-        }
-    }
-
-    private IEnumerator ForgetCountdownCoroutine()
-    {
-        _isForgetting = true;
-        float timer = 0;
-
-        while (timer < _forgetDelay)
-        {
-            if (_enemy.Targeter.HasLineOfSight)
-            {
-                if (_debugMode)
-                    Debug.Log($"[{_enemy.name}] Target spotted again, canceling forget timer");
-
-                _isForgetting = false;
-                yield break;
-            }
-
-            timer += Time.deltaTime;
-            yield return null;
+            Debug.LogWarning($"[{gameObject.name}] Trying to transition to the same state: {newState.GetType().Name}");
+            return;
         }
 
         if (_debugMode)
-            Debug.Log($"[{_enemy.name}] Forgot about target after {_forgetDelay} seconds.");
+        {
+            string oldStateName = _currentState?.GetType().Name ?? "None";
+            Debug.Log($"[{_enemy.name}] State transition: {oldStateName} -> {newState.GetType().Name}");
+        }
 
-        _isForgetting = false;
+        _currentState?.Exit();
+        _currentState = newState;
+        _currentState?.Enter();
+    }
 
-        _currentState = _defaultState;
-        EnterState(_currentState);
-    }    
+    public void OnSearchComplete()
+    {
+        if (_currentState is EnemySearchState)
+        {
+            TransitionToState(GetState<EnemyIdleState>());
+        }
+    }
+    public void OnIdleComplete()
+    {
+        if (_currentState is EnemyIdleState && _enemy.IsAlive)
+        {
+            TransitionToState(GetState<EnemyPatrolState>());
+        }
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        _currentState?.Exit();
+    }
 }

@@ -1,23 +1,23 @@
 using UnityEngine;
 
-[RequireComponent (typeof(Enemy), typeof(PatrolMover), typeof(Chaser))]
+[RequireComponent(typeof(Enemy), typeof(PatrolMover), typeof(Chaser))]
 [RequireComponent(typeof(TargetDetector), typeof(EnemyAttacker))]
 public abstract class EnemyBehavior : MonoBehaviour
 {
     protected Enemy _enemy;
     protected PatrolMover PatrolMover => _enemy.PatrolMover;
     protected Chaser Chaser => _enemy.Chaser;
-    protected EnemyAttacker Attacker { get; private set; }
+    public EnemyAttacker Attacker { get; private set; }
+
+    public Enemy Enemy => _enemy;
 
     protected virtual void Awake()
     {
         _enemy = GetComponent<Enemy>();
         Attacker = GetComponent<EnemyAttacker>();
 
-        if (_enemy == null)
-        {
-            Debug.LogError($"[{gameObject.name}] EnemyBehavior requires Enemy component!");
-        }
+        if (_enemy == null)        
+            Debug.LogError($"[{gameObject.name}] EnemyBehavior requires Enemy component!");        
     }
 
     protected virtual void OnEnable() { }
