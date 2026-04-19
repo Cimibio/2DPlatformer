@@ -1,12 +1,14 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class EnemyAttackState : EnemyState
+public class EnemyAttackState : EnemySubState
 {
-    public EnemyAttackState(SlimeEnemyBehavior behavior) : base(behavior) { }
+    public EnemyAttackState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
+        : base(behavior, combatState) { }
 
     public override void Enter()
     {
-        Debug.Log($"[{_enemy.name}] Entering Attack state");
+        if (_behavior.DebugMode)
+            Debug.Log($"[{_enemy.name}] → Attack");
 
         _patrolMover.StopPatrol();
         _chaser.StopChase();
@@ -16,6 +18,11 @@ public class EnemyAttackState : EnemyState
 
     public override void Update()
     {
+        if (!_targeter.HasTarget || !_targeter.Target.TryGetComponent<Health>(out var health) || !health.IsAlive)
+        {
+            return;
+        }
+
         if (_attacker.CanAttack && _attacker.IsTargetInAttackRange())
             _attacker.Attack();
     }

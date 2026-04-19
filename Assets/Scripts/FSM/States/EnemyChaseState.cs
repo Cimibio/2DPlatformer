@@ -1,12 +1,14 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class EnemyChaseState : EnemyState
+public class EnemyChaseState : EnemySubState
 {
-    public EnemyChaseState(SlimeEnemyBehavior behavior) : base(behavior) { }
+    public EnemyChaseState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
+        : base(behavior, combatState) { }
 
     public override void Enter()
     {
-        Debug.Log($"[{_enemy.name}] Entering Chase state");
+        if (_behavior.DebugMode)
+            Debug.Log($"[{_enemy.name}] → Chase");
 
         _patrolMover.StopPatrol();
         _chaser.Chase(_targeter.Target.position);

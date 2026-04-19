@@ -1,14 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class EnemyIdleState : EnemyState
+public class EnemyIdleState : EnemySubState
 {
     private readonly float _idleDuration;
     private float _timer;
-    private bool _isWaiting;
+    private bool _isComplete;
 
-    public bool IsIdleComplete => !_isWaiting;
+    public bool IsComplete => _isComplete;
 
-    public EnemyIdleState(SlimeEnemyBehavior behavior) : base(behavior)
+    public EnemyIdleState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
+        : base(behavior, combatState)
     {
         _idleDuration = behavior.ForgetDelay;
     }
@@ -16,9 +17,9 @@ public class EnemyIdleState : EnemyState
     public override void Enter()
     {
         if (_behavior.DebugMode)
-            Debug.Log($"[{_enemy.name}] Entering Idle state - searching for target ({_idleDuration}s)");
+            Debug.Log($"[{_enemy.name}] → Idle ({_idleDuration}s)");
 
-        _isWaiting = true;
+        _isComplete = false;
         _timer = 0f;
 
         _chaser.StopChase();
@@ -28,37 +29,24 @@ public class EnemyIdleState : EnemyState
 
     public override void Update()
     {
-        if (!_isWaiting)
+        if (_isComplete)
             return;
-
-        if (_targeter.HasTarget && _targeter.HasLineOfSight)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Target spotted during idle!");
-
-            _isWaiting = false;
-
-            return;
-        }
 
         _timer += Time.deltaTime;
 
         if (_timer >= _idleDuration)
         {
             if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Idle timer complete - target forgotten");
+                Debug.Log($"[{_enemy.name}] Idle complete - target forgotten");
 
-            _isWaiting = false;
-            //_behavior.OnIdleComplete();
+            _isComplete = true;
+            _combatState.OnIdleComplete();
         }
     }
 
     public override void Exit()
     {
-        _isWaiting = false;
         _timer = 0f;
-
-        if (_behavior.DebugMode)
-            Debug.Log($"[{_enemy.name}] Exiting Idle state");
+        _isComplete = false;
     }
 }

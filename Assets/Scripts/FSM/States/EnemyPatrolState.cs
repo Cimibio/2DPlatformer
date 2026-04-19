@@ -6,12 +6,15 @@ public class EnemyPatrolState : EnemyState
 
     public override void Enter()
     {
-        Debug.Log($"[{_enemy.name}] Entering Patrol state");
+        if (_behavior.DebugMode)
+            Debug.Log($"[{_enemy.name}] Entering Patrol state");
 
         _chaser.StopChase();
         _attacker.ClearTarget();
         _patrolMover.Patrol();
     }
+
+    public override void Update() { }
 
     public override void Exit()
     {
