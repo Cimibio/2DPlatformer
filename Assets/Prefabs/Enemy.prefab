@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f197cdca28d1eb4ab1090c62aa0ca29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 5
+  _speed: 3
   _stoppingDistance: 0.5
   _rotateToTarget: 1
 --- !u!114 &-2349863812283476079
@@ -302,6 +302,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _forgetDelay: 5
+  _stuckThreshold: 0.1
+  _stuckTime: 2
   _debugMode: 1
 --- !u!114 &7739096130155853620
 MonoBehaviour:

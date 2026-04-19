@@ -6,11 +6,16 @@ public class EnemyCombatState : EnemyState
 {
     private EnemySubState _currentSubState;
     private readonly CombatStateFactory _combatStateFactory;
-    private Dictionary<Type, EnemySubState> _subStateCache;
-    private Dictionary<SubStateType, Type> _subStateTypeMap;
-
+    private Dictionary<Type, EnemySubState> _subStatesCache;
+    private Dictionary<SubStateType, Type> _subStateTypesMap;
     private bool _shouldReturnToPatrol;
-    public bool ShouldReturnToPatrol => _shouldReturnToPatrol;
+
+    public EnemyCombatState(SlimeEnemyBehavior behavior) : base(behavior)
+    {
+        _combatStateFactory = new CombatStateFactory(behavior, this);
+        InitializeSubStateTypeMap();
+        InitializeSubStateCache();
+    }
 
     public enum SubStateType
     {
@@ -20,33 +25,18 @@ public class EnemyCombatState : EnemyState
         Idle
     }
 
-    public EnemyCombatState(SlimeEnemyBehavior behavior) : base(behavior)
-    {
-        _combatStateFactory = new CombatStateFactory(behavior, this);
-        InitializeSubStateTypeMap();
-        InitializeSubStateCache();
-    }
+    public bool ShouldReturnToPatrol => _shouldReturnToPatrol;
+    private bool HasVisibleTarget => _targeter.HasTarget && _targeter.HasLineOfSight;
+    private bool CanAttackTarget => _attacker != null && _attacker.CanAttack && _attacker.IsTargetInAttackRange();
+    private bool HasTargetButNoLoS => _targeter.HasTarget && !_targeter.HasLineOfSight;
 
-    private void InitializeSubStateTypeMap()
+    public override void Update()
     {
-        _subStateTypeMap = new Dictionary<SubStateType, Type>
-        {
-            { SubStateType.Chase, typeof(EnemyChaseState) },
-            { SubStateType.Attack, typeof(EnemyAttackState) },
-            { SubStateType.Search, typeof(EnemySearchState) },
-            { SubStateType.Idle, typeof(EnemyIdleState) }
-        };
-    }
+        if (_shouldReturnToPatrol)
+            return;
 
-    private void InitializeSubStateCache()
-    {
-        _subStateCache = new Dictionary<Type, EnemySubState>
-        {
-            { typeof(EnemyChaseState), _combatStateFactory.CreateChaseState() },
-            { typeof(EnemyAttackState), _combatStateFactory.CreateAttackState() },
-            { typeof(EnemySearchState), _combatStateFactory.CreateSearchState() },
-            { typeof(EnemyIdleState), _combatStateFactory.CreateIdleState() }
-        };
+        UpdateSubState();
+        _currentSubState?.Update();
     }
 
     public override void Enter()
@@ -61,15 +51,6 @@ public class EnemyCombatState : EnemyState
         TransitionToSubState(initialState);
     }
 
-    public override void Update()
-    {
-        if (_shouldReturnToPatrol)
-            return;
-
-        UpdateSubState();
-        _currentSubState?.Update();
-    }
-
     public override void Exit()
     {
         _currentSubState?.Exit();
@@ -79,15 +60,37 @@ public class EnemyCombatState : EnemyState
             Debug.Log($"[{_enemy.name}] Exiting Combat mode");
     }
 
+    public void Idle()
+    {
+        TransitionToSubState(GetSubStateByType(SubStateType.Idle));
+    }
+
+    private void InitializeSubStateTypeMap()
+    {
+        _subStateTypesMap = new Dictionary<SubStateType, Type>
+        {
+            { SubStateType.Chase, typeof(EnemyChaseState) },
+            { SubStateType.Attack, typeof(EnemyAttackState) },
+            { SubStateType.Search, typeof(EnemySearchState) },
+            { SubStateType.Idle, typeof(EnemyIdleState) }
+        };
+    }
+
+    private void InitializeSubStateCache()
+    {
+        _subStatesCache = new Dictionary<Type, EnemySubState>
+        {
+            { typeof(EnemyChaseState), _combatStateFactory.CreateChaseState() },
+            { typeof(EnemyAttackState), _combatStateFactory.CreateAttackState() },
+            { typeof(EnemySearchState), _combatStateFactory.CreateSearchState() },
+            { typeof(EnemyIdleState), _combatStateFactory.CreateIdleState() }
+        };
+    }
+
     private SubStateType DetermineInitialSubStateType()
     {
-        if (_targeter.HasTarget && _targeter.HasLineOfSight)
-        {
-            if (_attacker != null && _attacker.CanAttack && _attacker.IsTargetInAttackRange())
-                return SubStateType.Attack;
-            else
-                return SubStateType.Chase;
-        }
+        if (HasVisibleTarget)
+            return GetCombatSubStateType();
 
         return SubStateType.Search;
     }
@@ -99,7 +102,7 @@ public class EnemyCombatState : EnemyState
         if (_shouldReturnToPatrol)
             return;
 
-        Type targetStateType = _subStateTypeMap[newStateType];
+        Type targetStateType = _subStateTypesMap[newStateType];
 
         if (_currentSubState == null || _currentSubState.GetType() != targetStateType)
         {
@@ -110,44 +113,30 @@ public class EnemyCombatState : EnemyState
 
     private SubStateType DetermineSubStateType()
     {
+        if (HasVisibleTarget)
+            return GetCombatSubStateType();
+
         if (_currentSubState is EnemyIdleState idleState && !idleState.IsComplete)
-        {
-            if (_targeter.HasTarget && _targeter.HasLineOfSight)
-            {
-                return _attacker != null && _attacker.IsTargetInAttackRange()
-                    ? SubStateType.Attack
-                    : SubStateType.Chase;
-            }
-
             return SubStateType.Idle;
-        }
 
-        if (_currentSubState is EnemySearchState searchState && !searchState.IsComplete)
+        if (_currentSubState is EnemySearchState searchState)
         {
-            if (_targeter.HasTarget && _targeter.HasLineOfSight)
-            {
-                return _attacker != null && _attacker.IsTargetInAttackRange()
-                    ? SubStateType.Attack
-                    : SubStateType.Chase;
-            }
-
-            return SubStateType.Search;
-        }
-
-        if (_targeter.HasTarget && _targeter.HasLineOfSight)
-        {
-            if (_attacker != null && _attacker.CanAttack && _attacker.IsTargetInAttackRange())
-                return SubStateType.Attack;
+            if (searchState.IsComplete)
+                return SubStateType.Idle;
             else
-                return SubStateType.Chase;
+                return SubStateType.Search;
         }
-        else if (_targeter.HasTarget && !_targeter.HasLineOfSight)
-        {
+
+        if (HasTargetButNoLoS)
             return SubStateType.Search;
-        }
 
         _shouldReturnToPatrol = true;
         return GetCurrentSubStateType();
+    }
+
+    private SubStateType GetCombatSubStateType()
+    {
+        return CanAttackTarget ? SubStateType.Attack : SubStateType.Chase;
     }
 
     private SubStateType GetCurrentSubStateType()
@@ -155,7 +144,7 @@ public class EnemyCombatState : EnemyState
         if (_currentSubState == null)
             return SubStateType.Idle;
 
-        foreach (var pair in _subStateTypeMap)
+        foreach (var pair in _subStateTypesMap)
         {
             if (pair.Value == _currentSubState.GetType())
                 return pair.Key;
@@ -166,17 +155,17 @@ public class EnemyCombatState : EnemyState
 
     private EnemySubState GetSubStateByType(SubStateType stateType)
     {
-        Type type = _subStateTypeMap[stateType];
+        Type type = _subStateTypesMap[stateType];
         return GetSubState(type);
     }
 
     private EnemySubState GetSubState(Type stateType)
     {
-        if (_subStateCache.TryGetValue(stateType, out EnemySubState state))
+        if (_subStatesCache.TryGetValue(stateType, out EnemySubState state))
             return state;
 
         Debug.LogError($"[{_enemy.name}] Sub-state {stateType.Name} not found in cache!");
-        return _subStateCache[typeof(EnemyIdleState)];
+        return _subStatesCache[typeof(EnemyIdleState)];
     }
 
     private void TransitionToSubState(EnemySubState newState)
@@ -193,38 +182,5 @@ public class EnemyCombatState : EnemyState
         _currentSubState?.Exit();
         _currentSubState = newState;
         _currentSubState?.Enter();
-    }
-
-    public void OnSearchStuck()
-    {
-        if (_currentSubState is EnemySearchState)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Stuck during search, going to Idle");
-
-            TransitionToSubState(GetSubStateByType(SubStateType.Idle));
-        }
-    }
-
-    public void OnReachedLastKnownPosition()
-    {
-        if (_currentSubState is EnemySearchState)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Reached last known position, going to Idle");
-
-            TransitionToSubState(GetSubStateByType(SubStateType.Idle));
-        }
-    }
-
-    public void OnIdleComplete()
-    {
-        if (_currentSubState is EnemyIdleState)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Idle complete, returning to Patrol");
-
-            _shouldReturnToPatrol = true;
-        }
     }
 }

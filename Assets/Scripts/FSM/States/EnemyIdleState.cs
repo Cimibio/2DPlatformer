@@ -6,12 +6,28 @@ public class EnemyIdleState : EnemySubState
     private float _timer;
     private bool _isComplete;
 
-    public bool IsComplete => _isComplete;
-
     public EnemyIdleState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
         : base(behavior, combatState)
     {
         _idleDuration = behavior.ForgetDelay;
+    }
+
+    public bool IsComplete => _isComplete;
+
+    public override void Update()
+    {
+        if (_isComplete)
+            return;
+
+        _timer += Time.deltaTime;
+
+        if (_timer >= _idleDuration)
+        {
+            if (_behavior.DebugMode)
+                Debug.Log($"[{_enemy.name}] Idle complete - target forgotten, returning to Patrol");
+
+            _isComplete = true;
+        }
     }
 
     public override void Enter()
@@ -25,23 +41,6 @@ public class EnemyIdleState : EnemySubState
         _chaser.StopChase();
         _patrolMover.StopPatrol();
         _attacker.ClearTarget();
-    }
-
-    public override void Update()
-    {
-        if (_isComplete)
-            return;
-
-        _timer += Time.deltaTime;
-
-        if (_timer >= _idleDuration)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Idle complete - target forgotten");
-
-            _isComplete = true;
-            _combatState.OnIdleComplete();
-        }
     }
 
     public override void Exit()

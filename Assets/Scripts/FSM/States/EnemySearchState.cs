@@ -2,20 +2,26 @@
 
 public class EnemySearchState : EnemySubState
 {
+    [SerializeField] private float _reachDistance = 0.2f;
+
     private Vector3 _lastKnownPosition;
     private float _stuckTimer;
     private float _lastXPosition;
     private bool _isComplete;
-
-    public bool IsComplete => _isComplete;
+    private float _sqrReachDistance;
 
     public EnemySearchState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
-        : base(behavior, combatState) { }
+        : base(behavior, combatState)
+    {
+        _sqrReachDistance = _reachDistance * _reachDistance;
+    }
+
+    public bool IsComplete => _isComplete;
 
     public override void Enter()
     {
         if (_behavior.DebugMode)
-            Debug.Log($"[{_enemy.name}] → Search");
+            Debug.Log($"[{_enemy.name}] → Search (target: {_targeter.LastKnownPosition})");
 
         _isComplete = false;
         _stuckTimer = 0f;
@@ -33,34 +39,45 @@ public class EnemySearchState : EnemySubState
         if (_isComplete)
             return;
 
-        float currentX = _enemy.transform.position.x;
-        if (Mathf.Abs(currentX - _lastXPosition) < _behavior.StuckThreshold)
+        if (HasReachedPosition())
+        {
+            if (_behavior.DebugMode)
+                Debug.Log($"[{_enemy.name}] Reached last known position (distance: {Vector3.Distance(_enemy.transform.position, _lastKnownPosition):F2})");
+
+            _isComplete = true;
+            return;
+        }
+
+        ProcessStuckCheck();
+    }
+
+    private bool HasReachedPosition()
+    {
+        Vector2 currentPos = _enemy.transform.position;
+        Vector2 targetPos = _lastKnownPosition;
+
+        float sqrDistance = (currentPos - targetPos).sqrMagnitude;
+        return sqrDistance <= _sqrReachDistance;
+    }
+
+    private void ProcessStuckCheck()
+    {
+        float currentXposition = _enemy.transform.position.x;
+
+        if (Mathf.Abs(currentXposition - _lastXPosition) < _behavior.StuckThreshold)
         {
             _stuckTimer += Time.deltaTime;
 
-            if (_stuckTimer >= _behavior.StuckTime)
-            {
-                if (_behavior.DebugMode)
-                    Debug.Log($"[{_enemy.name}] Stuck during search!");
+            if (_behavior.DebugMode)
+                Debug.Log($"[{_enemy.name}] Stuck during search! (stuck time: {_stuckTimer:F1}s)");
 
+            if (_stuckTimer >= _behavior.StuckTime)
                 _isComplete = true;
-                _combatState.OnSearchStuck();
-                return;
-            }
         }
         else
         {
             _stuckTimer = 0f;
-            _lastXPosition = currentX;
-        }
-
-        if (!_chaser.IsChasing)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Reached last known position");
-
-            _isComplete = true;
-            _combatState.OnReachedLastKnownPosition();
+            _lastXPosition = currentXposition;
         }
     }
 

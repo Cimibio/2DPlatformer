@@ -14,7 +14,6 @@ public class SlimeEnemyBehavior : EnemyBehavior
     private StateFactory _stateFactory;
     private Dictionary<Type, EnemyState> _stateCache;
 
-    // Только два основных состояния!
     public enum MainStateType
     {
         Patrol,
@@ -82,17 +81,11 @@ public class SlimeEnemyBehavior : EnemyBehavior
         if (!_enemy.IsAlive)
             return MainStateType.Patrol;
 
-        // Если есть цель в зоне видимости - в Combat
         if (_enemy.Targeter.HasTarget && _enemy.Targeter.HasLineOfSight)
-        {
             return MainStateType.Combat;
-        }
 
-        // Если сейчас в Combat состоянии, позволяем ему самому решать когда выйти
         if (_currentState is EnemyCombatState combatState && !combatState.ShouldReturnToPatrol)
-        {
             return MainStateType.Combat;
-        }
 
         return MainStateType.Patrol;
     }

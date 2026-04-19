@@ -11,11 +11,21 @@ public class EnemyChaseState : EnemySubState
             Debug.Log($"[{_enemy.name}] → Chase");
 
         _patrolMover.StopPatrol();
-        _chaser.Chase(_targeter.Target.position);
+
+        if (_targeter.HasTarget && _targeter.Target != null)
+        {
+            _chaser.Chase(_targeter.Target.position);
+            _attacker.SetTarget(_targeter.Target);
+        }
     }
 
     public override void Update()
     {
+        if (!_targeter.HasTarget || _targeter.Target == null)
+        {
+            return;
+        }
+
         if (_chaser.IsChasing)
         {
             _chaser.UpdateTarget(_targeter.Target.position);
