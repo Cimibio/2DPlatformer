@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// EnemyChaseState.cs
+using UnityEngine;
 
 public class EnemyChaseState : EnemySubState
 {
@@ -10,6 +11,7 @@ public class EnemyChaseState : EnemySubState
         if (_behavior.DebugMode)
             Debug.Log($"[{_enemy.name}] → Chase");
 
+        _searcher.StopSearch();
         _patrolMover.StopPatrol();
 
         if (_targeter.HasTarget && _targeter.Target != null)
@@ -22,9 +24,7 @@ public class EnemyChaseState : EnemySubState
     public override void Update()
     {
         if (!_targeter.HasTarget || _targeter.Target == null)
-        {
             return;
-        }
 
         if (_chaser.IsChasing)
         {

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -13,10 +12,6 @@ public class Chaser : MonoBehaviour
     private bool _isChasing;
     private float _sqrStoppingDistance;
 
-    public event Action ChaseStarted;
-    public event Action ChaseStopped;
-    public event Action TargetReached;
-
     public bool IsChasing => _isChasing;
     public Vector3 CurrentTarget => _currentTarget;
 
@@ -28,14 +23,14 @@ public class Chaser : MonoBehaviour
 
     private void Update()
     {
-        if (!_isChasing) return;
+        if (!_isChasing) 
+            return;
 
         float sqrDistance = (transform.position - _currentTarget).sqrMagnitude;
 
         if (sqrDistance <= _sqrStoppingDistance)
         {
             StopChase();
-            TargetReached?.Invoke();
             return;
         }
 
@@ -46,22 +41,18 @@ public class Chaser : MonoBehaviour
     {
         _isChasing = true;
         _currentTarget = targetPosition;
-        ChaseStarted?.Invoke();
     }
 
     public void UpdateTarget(Vector3 newTargetPosition)
     {
-        if (_isChasing)
-        {
-            _currentTarget = newTargetPosition;
-        }
+        if (_isChasing)        
+            _currentTarget = newTargetPosition;        
     }
 
     public void StopChase()
     {
         _isChasing = false;
         _rigidbody.velocity = Vector2.zero;
-        ChaseStopped?.Invoke();
     }
 
     private void MoveTowardsTarget()
@@ -69,10 +60,8 @@ public class Chaser : MonoBehaviour
         Vector2 direction = (_currentTarget - transform.position).normalized;
         _rigidbody.velocity = new Vector2(direction.x * _speed, _rigidbody.velocity.y);
 
-        if (_rotateToTarget && direction.x != 0)
-        {
-            transform.rotation = Quaternion.Euler(0, direction.x > 0 ? 0 : 180, 0);
-        }
+        if (_rotateToTarget && direction.x != 0)        
+            transform.rotation = Quaternion.Euler(0, direction.x > 0 ? 0 : 180, 0);        
     }
 
     private void OnDrawGizmosSelected()

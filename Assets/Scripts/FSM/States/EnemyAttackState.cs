@@ -21,6 +21,7 @@ public class EnemyAttackState : EnemySubState
 
         _patrolMover.StopPatrol();
         _chaser.StopChase();
+        _searcher.StopSearch();
         _attacker.SetTarget(_targeter.Target);
         _attacker.Attack();
     }

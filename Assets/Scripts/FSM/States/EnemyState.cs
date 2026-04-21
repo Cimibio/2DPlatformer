@@ -4,6 +4,7 @@ public abstract class EnemyState
     protected readonly Enemy _enemy;
     protected readonly PatrolMover _patrolMover;
     protected readonly Chaser _chaser;
+    protected readonly Searcher _searcher;
     protected readonly EnemyAttacker _attacker;
     protected readonly TargetDetector _targeter;
 
@@ -15,6 +16,7 @@ public abstract class EnemyState
         _chaser = _enemy.Chaser;
         _attacker = behavior.Attacker;
         _targeter = _enemy.Targeter;
+        _searcher = _enemy.Searcher;
     }
 
     public virtual void Enter() { }

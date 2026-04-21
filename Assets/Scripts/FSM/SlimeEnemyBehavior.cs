@@ -97,10 +97,8 @@ public class SlimeEnemyBehavior : EnemyBehavior
 
     private EnemyState GetState(Type stateType)
     {
-        if (_stateCache.TryGetValue(stateType, out EnemyState state))
-        {
-            return state;
-        }
+        if (_stateCache.TryGetValue(stateType, out EnemyState state))        
+            return state;        
 
         Debug.LogError($"[{gameObject.name}] State {stateType.Name} not found in cache!");
         return _stateCache[typeof(EnemyPatrolState)];

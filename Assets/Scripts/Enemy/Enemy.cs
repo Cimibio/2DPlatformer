@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(PatrolMover), typeof(Chaser), typeof(TargetDetector))]
 [RequireComponent(typeof(FallDetector), typeof(EnemyAnimator), typeof(SlimeEnemyBehavior))]
-[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(Health), typeof(Searcher))]
 public class Enemy : MonoBehaviour
 {
     private PatrolMover _patrolMover;
@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     private EnemyBehavior _behavior;
     private EnemyAnimator _animator;
     private Health _health;
+    private Searcher _searcher;
 
     public event Action<Enemy> Falled;
     public event Action<Enemy> Died;
@@ -23,6 +24,7 @@ public class Enemy : MonoBehaviour
     public TargetDetector Targeter => _targeter;
     public bool IsAlive => _health.IsAlive;
     public Health Health => _health;
+    public Searcher Searcher => _searcher;
 
     private void Awake()
     {
@@ -33,6 +35,7 @@ public class Enemy : MonoBehaviour
         _animator = GetComponent<EnemyAnimator>();
         _behavior = GetComponent<EnemyBehavior>();
         _health = GetComponent<Health>();
+        _searcher = GetComponent<Searcher>();
     }
 
     private void OnEnable()

@@ -8,12 +8,12 @@ public class EnemySearchState : EnemySubState
     private float _stuckTimer;
     private float _lastXPosition;
     private bool _isComplete;
-    private float _sqrReachDistance;
+    //private float _sqrReachDistance;
 
     public EnemySearchState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
         : base(behavior, combatState)
     {
-        _sqrReachDistance = _reachDistance * _reachDistance;
+        //_sqrReachDistance = _reachDistance * _reachDistance;
     }
 
     public bool IsComplete => _isComplete;
@@ -29,9 +29,13 @@ public class EnemySearchState : EnemySubState
         _lastKnownPosition = _targeter.LastKnownPosition;
         _lastXPosition = _enemy.transform.position.x;
 
-        _chaser.Chase(_lastKnownPosition);
-        _attacker.ClearTarget();
+        _chaser.StopChase();
         _patrolMover.StopPatrol();
+        _attacker.ClearTarget();
+
+        // Запускаем Searcher
+        _searcher.StartSearch(_lastKnownPosition);
+        _searcher.Reached += OnReached;
     }
 
     public override void Update()
@@ -39,25 +43,16 @@ public class EnemySearchState : EnemySubState
         if (_isComplete)
             return;
 
-        if (HasReachedPosition())
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Reached last known position (distance: {Vector3.Distance(_enemy.transform.position, _lastKnownPosition):F2})");
-
-            _isComplete = true;
-            return;
-        }
-
         ProcessStuckCheck();
     }
 
-    private bool HasReachedPosition()
+    private void OnReached()
     {
-        Vector2 currentPos = _enemy.transform.position;
-        Vector2 targetPos = _lastKnownPosition;
+        if (_behavior.DebugMode)
+            Debug.Log($"[{_enemy.name}] Reached last known position");
 
-        float sqrDistance = (currentPos - targetPos).sqrMagnitude;
-        return sqrDistance <= _sqrReachDistance;
+        _isComplete = true;
+        _searcher.Reached -= OnReached;
     }
 
     private void ProcessStuckCheck()
@@ -72,7 +67,10 @@ public class EnemySearchState : EnemySubState
                 Debug.Log($"[{_enemy.name}] Stuck during search! (stuck time: {_stuckTimer:F1}s)");
 
             if (_stuckTimer >= _behavior.StuckTime)
+            {
                 _isComplete = true;
+                _searcher.Reached -= OnReached;
+            }
         }
         else
         {
@@ -83,7 +81,8 @@ public class EnemySearchState : EnemySubState
 
     public override void Exit()
     {
-        _chaser.StopChase();
+        _searcher.StopSearch();
+        _searcher.Reached -= OnReached;
         _isComplete = false;
     }
 }

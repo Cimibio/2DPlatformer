@@ -38,6 +38,7 @@ public class EnemyIdleState : EnemySubState
         _isComplete = false;
         _timer = 0f;
 
+        _searcher.StopSearch();
         _chaser.StopChase();
         _patrolMover.StopPatrol();
         _attacker.ClearTarget();

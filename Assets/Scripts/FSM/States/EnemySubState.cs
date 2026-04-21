@@ -7,6 +7,7 @@ public abstract class EnemySubState
     protected readonly Chaser _chaser;
     protected readonly EnemyAttacker _attacker;
     protected readonly TargetDetector _targeter;
+    protected readonly Searcher _searcher;
 
     public EnemySubState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
     {
@@ -17,6 +18,7 @@ public abstract class EnemySubState
         _chaser = _enemy.Chaser;
         _attacker = behavior.Attacker;
         _targeter = _enemy.Targeter;
+        _searcher = _enemy.Searcher;
     }
 
     public virtual void Enter() { }

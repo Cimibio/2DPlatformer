@@ -10,6 +10,7 @@ public class EnemyPatrolState : EnemyState
             Debug.Log($"[{_enemy.name}] Entering Patrol state");
 
         _chaser.StopChase();
+        _searcher.StopSearch();
         _attacker.ClearTarget();
         _patrolMover.Patrol();
     }
