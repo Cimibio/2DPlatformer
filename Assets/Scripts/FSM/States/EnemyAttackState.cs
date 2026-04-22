@@ -19,10 +19,12 @@ public class EnemyAttackState : EnemySubState
         if (_behavior.DebugMode)
             Debug.Log($"[{_enemy.name}] → Attack");
 
-        _patrolMover.StopPatrol();
-        _chaser.StopChase();
-        _searcher.StopSearch();
         _attacker.SetTarget(_targeter.Target);
         _attacker.Attack();
+    }
+
+    public override void Exit()
+    {
+        _attacker.ClearTarget();
     }
 }

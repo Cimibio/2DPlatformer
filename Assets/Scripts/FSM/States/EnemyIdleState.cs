@@ -14,6 +14,15 @@ public class EnemyIdleState : EnemySubState
 
     public bool IsComplete => _isComplete;
 
+    public override void Enter()
+    {
+        if (_behavior.DebugMode)
+            Debug.Log($"[{_enemy.name}] → Idle ({_idleDuration}s)");
+
+        _isComplete = false;
+        _timer = 0f;
+    }
+
     public override void Update()
     {
         if (_isComplete)
@@ -28,20 +37,6 @@ public class EnemyIdleState : EnemySubState
 
             _isComplete = true;
         }
-    }
-
-    public override void Enter()
-    {
-        if (_behavior.DebugMode)
-            Debug.Log($"[{_enemy.name}] → Idle ({_idleDuration}s)");
-
-        _isComplete = false;
-        _timer = 0f;
-
-        _searcher.StopSearch();
-        _chaser.StopChase();
-        _patrolMover.StopPatrol();
-        _attacker.ClearTarget();
     }
 
     public override void Exit()

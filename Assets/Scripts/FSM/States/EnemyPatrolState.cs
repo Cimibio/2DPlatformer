@@ -9,13 +9,10 @@ public class EnemyPatrolState : EnemyState
         if (_behavior.DebugMode)
             Debug.Log($"[{_enemy.name}] Entering Patrol state");
 
-        _chaser.StopChase();
-        _searcher.StopSearch();
-        _attacker.ClearTarget();
         _patrolMover.Patrol();
     }
 
-    public override void Update() { }
+    //public override void Update() { }
 
     public override void Exit()
     {

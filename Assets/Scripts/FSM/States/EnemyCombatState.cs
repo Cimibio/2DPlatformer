@@ -28,7 +28,6 @@ public class EnemyCombatState : EnemyState
     public bool ShouldReturnToPatrol => _shouldReturnToPatrol;
     private bool HasVisibleTarget => _targeter.HasTarget && _targeter.IsTargetInVisionZone && _targeter.HasLineOfSight;
     private bool CanAttackTarget => _attacker != null && _attacker.CanAttack && _attacker.IsTargetInAttackRange();
-    private bool HasTargetButNoLoS => _targeter.HasTarget && !HasVisibleTarget;
 
     public override void Update()
     {
@@ -58,11 +57,6 @@ public class EnemyCombatState : EnemyState
 
         if (_behavior.DebugMode)
             Debug.Log($"[{_enemy.name}] Exiting Combat mode");
-    }
-
-    public void Idle()
-    {
-        TransitionToSubState(GetSubStateByType(SubStateType.Idle));
     }
 
     private void InitializeSubStateTypeMap()
@@ -126,11 +120,7 @@ public class EnemyCombatState : EnemyState
             return SubStateType.Idle;
 
         if (!_targeter.IsTargetInVisionZone && _targeter.HasTarget)
-        {
-            if (_behavior.DebugMode)
-                Debug.Log($"[{_enemy.name}] Target left vision zone, switching to Search");
-            return SubStateType.Search;
-        }
+            return SubStateType.Search;        
 
         _shouldReturnToPatrol = true;
         return GetCurrentSubStateType();

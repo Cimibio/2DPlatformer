@@ -34,6 +34,12 @@ public class TargetDetector : MonoBehaviour
         if (_detectedTarget == null)
             return;
 
+        RefreshTargetVisibility();
+        HandleTargetLoss();
+    }
+
+    private void RefreshTargetVisibility()
+    {
         _checkTimer += Time.deltaTime;
 
         if (_checkTimer >= _checkInterval)
@@ -43,13 +49,13 @@ public class TargetDetector : MonoBehaviour
             if (_isTargetInVisionZone)
                 UpdateLineOfSight();
         }
+    }
 
+    private void HandleTargetLoss()
+    {
         if (!_isTargetInVisionZone)
         {
             _lostTimer += Time.deltaTime;
-
-            if (_debugMode)
-                Debug.Log($"[{gameObject.name}] Target outside zone timer: {_lostTimer:F1}/{_targetLostDelay}s");
 
             if (_lostTimer >= _targetLostDelay)
             {
@@ -57,6 +63,10 @@ public class TargetDetector : MonoBehaviour
                     Debug.Log($"[{gameObject.name}] Target completely lost");
                 ClearTarget();
             }
+        }
+        else
+        {
+            _lostTimer = 0;
         }
     }
 
