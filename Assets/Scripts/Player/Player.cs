@@ -65,6 +65,15 @@ public class Player : MonoBehaviour
     {
         if (CanMove && _inputReader.IsJumpPressed)
             _mover.Jump(_jumpForce);
+
+        if (_animator != null)
+        {
+            float horizontalSpeed = _rigidbody.velocity.x;
+            float verticalVelocity = _rigidbody.velocity.y;
+            bool isGrounded = _mover.IsGrounded();
+
+            _animator.UpdateMovementAnimation(horizontalSpeed, verticalVelocity, isGrounded);
+        }
     }
 
     public void Reset()

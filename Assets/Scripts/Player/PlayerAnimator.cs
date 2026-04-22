@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Animator), typeof(Mover), typeof(Player))]
+[RequireComponent(typeof(Animator))]
 public class PlayerAnimator : MonoBehaviour
 {
     private readonly int _speedXHash = Animator.StringToHash("speedX");
@@ -11,23 +11,15 @@ public class PlayerAnimator : MonoBehaviour
     private readonly int _attackHash = Animator.StringToHash("attack");
 
     private Animator _animator;
-    private Mover _mover;
-    private Rigidbody2D _rigidbody;
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        _mover = GetComponent<Mover>();
-        _rigidbody = GetComponent<Rigidbody2D>();
     }
 
-    private void Update()
+    public void UpdateMovementAnimation(float horizontalSpeed, float verticalVelocity, bool isGrounded)
     {
-        float horizontalSpeed = Mathf.Abs(_rigidbody.velocity.x);
-        float verticalVelocity = _rigidbody.velocity.y;
-        bool isGrounded = _mover.IsGrounded();
-
-        float targetSpeedX = isGrounded ? horizontalSpeed : 0f;
+        float targetSpeedX = isGrounded ? Mathf.Abs(horizontalSpeed) : 0f;
 
         _animator.SetFloat(_speedXHash, targetSpeedX);
         _animator.SetFloat(_speedYHash, verticalVelocity);
