@@ -2,19 +2,13 @@
 
 public class EnemySearchState : EnemySubState
 {
-    [SerializeField] private float _reachDistance = 0.2f;
-
     private Vector3 _lastKnownPosition;
     private float _stuckTimer;
     private float _lastXPosition;
     private bool _isComplete;
-    //private float _sqrReachDistance;
 
     public EnemySearchState(SlimeEnemyBehavior behavior, EnemyCombatState combatState)
-        : base(behavior, combatState)
-    {
-        //_sqrReachDistance = _reachDistance * _reachDistance;
-    }
+        : base(behavior, combatState) { }
 
     public bool IsComplete => _isComplete;
 
@@ -33,9 +27,7 @@ public class EnemySearchState : EnemySubState
         _patrolMover.StopPatrol();
         _attacker.ClearTarget();
 
-        // Запускаем Searcher
-        _searcher.StartSearch(_lastKnownPosition);
-        _searcher.Reached += OnReached;
+        _searcher.Search(_lastKnownPosition);
     }
 
     public override void Update()
@@ -43,16 +35,16 @@ public class EnemySearchState : EnemySubState
         if (_isComplete)
             return;
 
+        if (_searcher.IsReached)
+        {
+            if (_behavior.DebugMode)
+                Debug.Log($"[{_enemy.name}] Reached last known position");
+
+            _isComplete = true;
+            return;
+        }
+
         ProcessStuckCheck();
-    }
-
-    private void OnReached()
-    {
-        if (_behavior.DebugMode)
-            Debug.Log($"[{_enemy.name}] Reached last known position");
-
-        _isComplete = true;
-        _searcher.Reached -= OnReached;
     }
 
     private void ProcessStuckCheck()
@@ -67,10 +59,7 @@ public class EnemySearchState : EnemySubState
                 Debug.Log($"[{_enemy.name}] Stuck during search! (stuck time: {_stuckTimer:F1}s)");
 
             if (_stuckTimer >= _behavior.StuckTime)
-            {
                 _isComplete = true;
-                _searcher.Reached -= OnReached;
-            }
         }
         else
         {
@@ -82,7 +71,6 @@ public class EnemySearchState : EnemySubState
     public override void Exit()
     {
         _searcher.StopSearch();
-        _searcher.Reached -= OnReached;
         _isComplete = false;
     }
 }

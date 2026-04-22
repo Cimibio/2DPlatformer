@@ -1,4 +1,4 @@
-using System;
+// Searcher.cs
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -14,10 +14,19 @@ public class Searcher : MonoBehaviour
     private float _sqrReachDistance;
 
     public bool IsSearching => _isSearching;
-    public bool IsReached { get; private set; }
     public Vector3 TargetPosition => _targetPosition;
 
-    public event Action Reached;
+    public bool IsReached
+    {
+        get
+        {
+            if (!_isSearching)
+                return false;
+
+            float sqrDistance = (transform.position - _targetPosition).sqrMagnitude;
+            return sqrDistance <= _sqrReachDistance;
+        }
+    }
 
     private void Awake()
     {
@@ -31,26 +40,18 @@ public class Searcher : MonoBehaviour
             return;
 
         if (IsReached)
-            return;
-
-        float sqrDistance = (transform.position - _targetPosition).sqrMagnitude;
-
-        if (sqrDistance <= _sqrReachDistance)
         {
-            IsReached = true;
             StopSearch();
-            Reached?.Invoke();
             return;
         }
 
         MoveTowardsTarget();
     }
 
-    public void StartSearch(Vector3 targetPosition)
+    public void Search(Vector3 targetPosition)
     {
         _targetPosition = targetPosition;
         _isSearching = true;
-        IsReached = false;
     }
 
     public void StopSearch()

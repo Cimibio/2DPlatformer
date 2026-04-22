@@ -21,6 +21,7 @@ public class TargetDetector : MonoBehaviour
     public bool HasLineOfSight => _hasLineOfSight;
     public Transform Target => _detectedTarget;
     public Vector3 LastKnownPosition => _lastKnownPosition;
+    public bool IsTargetInVisionZone => _isTargetInVisionZone;
 
     private void Awake()
     {
@@ -38,21 +39,22 @@ public class TargetDetector : MonoBehaviour
         if (_checkTimer >= _checkInterval)
         {
             _checkTimer = 0;
-            UpdateLineOfSight();
+
+            if (_isTargetInVisionZone)
+                UpdateLineOfSight();
         }
 
-        if (!_isTargetInVisionZone && !_hasLineOfSight)
+        if (!_isTargetInVisionZone)
         {
             _lostTimer += Time.deltaTime;
 
             if (_debugMode)
-                Debug.Log($"[{gameObject.name}] Target lost timer: {_lostTimer:F1}/{_targetLostDelay}s");
+                Debug.Log($"[{gameObject.name}] Target outside zone timer: {_lostTimer:F1}/{_targetLostDelay}s");
 
             if (_lostTimer >= _targetLostDelay)
             {
                 if (_debugMode)
                     Debug.Log($"[{gameObject.name}] Target completely lost");
-
                 ClearTarget();
             }
         }
@@ -71,6 +73,12 @@ public class TargetDetector : MonoBehaviour
             if (_debugMode)
                 Debug.Log($"[{gameObject.name}] Target entered vision zone");
         }
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (IsTargetLayer(other) && _detectedTarget == other.transform)        
+            _lastKnownPosition = _detectedTarget.position;        
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -99,28 +107,18 @@ public class TargetDetector : MonoBehaviour
         bool previousLineOfSight = _hasLineOfSight;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, _obstacleLayer);
-
         _hasLineOfSight = hit.collider == null;
 
         if (_hasLineOfSight)
         {
             _lastKnownPosition = _detectedTarget.position;
-            _lostTimer = 0f;
-        }
-
-        if (_hasLineOfSight && !previousLineOfSight)
-        {
-            if (_debugMode)
-                Debug.Log($"[{gameObject.name}] Line of sight gained");
-        }
-        else if (!_hasLineOfSight && previousLineOfSight)
-        {
-            if (_debugMode)
-                Debug.Log($"[{gameObject.name}] Line of sight lost");
         }
 
         if (_debugMode)
-            Debug.DrawRay(transform.position, direction, _hasLineOfSight ? Color.green : Color.red, 0.1f);
+        {
+            Color rayColor = _hasLineOfSight ? Color.green : Color.red;
+            Debug.DrawRay(transform.position, direction, rayColor, _checkInterval);
+        }
     }
 
     private void ClearTarget()

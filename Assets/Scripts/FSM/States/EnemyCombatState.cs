@@ -26,9 +26,9 @@ public class EnemyCombatState : EnemyState
     }
 
     public bool ShouldReturnToPatrol => _shouldReturnToPatrol;
-    private bool HasVisibleTarget => _targeter.HasTarget && _targeter.HasLineOfSight;
+    private bool HasVisibleTarget => _targeter.HasTarget && _targeter.IsTargetInVisionZone && _targeter.HasLineOfSight;
     private bool CanAttackTarget => _attacker != null && _attacker.CanAttack && _attacker.IsTargetInAttackRange();
-    private bool HasTargetButNoLoS => _targeter.HasTarget && !_targeter.HasLineOfSight;
+    private bool HasTargetButNoLoS => _targeter.HasTarget && !HasVisibleTarget;
 
     public override void Update()
     {
@@ -119,16 +119,18 @@ public class EnemyCombatState : EnemyState
         if (_currentSubState is EnemyIdleState idleState && !idleState.IsComplete)
             return SubStateType.Idle;
 
-        if (_currentSubState is EnemySearchState searchState)
-        {
-            if (searchState.IsComplete)
-                return SubStateType.Idle;
-            else
-                return SubStateType.Search;
-        }
-
-        if (HasTargetButNoLoS)
+        if (_currentSubState is EnemySearchState searchState && !searchState.IsComplete)
             return SubStateType.Search;
+
+        if (_currentSubState is EnemySearchState completedSearch && completedSearch.IsComplete)
+            return SubStateType.Idle;
+
+        if (!_targeter.IsTargetInVisionZone && _targeter.HasTarget)
+        {
+            if (_behavior.DebugMode)
+                Debug.Log($"[{_enemy.name}] Target left vision zone, switching to Search");
+            return SubStateType.Search;
+        }
 
         _shouldReturnToPatrol = true;
         return GetCurrentSubStateType();
