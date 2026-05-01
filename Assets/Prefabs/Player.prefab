@@ -20,6 +20,9 @@ GameObject:
   - component: {fileID: 8246649333133607461}
   - component: {fileID: 8309699003380051039}
   - component: {fileID: 8718251026883253866}
+  - component: {fileID: -4347058849701259022}
+  - component: {fileID: 6392526045644607031}
+  - component: {fileID: -6237077857802971589}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -281,6 +284,75 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxValue: 100
   _currentValue: 100
+--- !u!58 &-4347058849701259022
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2151079634999394895}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 1088
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.64
+--- !u!114 &6392526045644607031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2151079634999394895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5d7d5ac1e1bf3b4ea08067dc9e08b61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _enemyLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  _searchRadius: 3
+  _debugMode: 1
+--- !u!114 &-6237077857802971589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2151079634999394895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41b242d7faa0aea468b91bebc3e82119, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _duration: 6
+  _cooldown: 4
+  _damagePerSecond: 5
+  _healPerSecond: 4
+  _ticksPerSecond: 5
 --- !u!1 &3238995985041155716
 GameObject:
   m_ObjectHideFlags: 0
