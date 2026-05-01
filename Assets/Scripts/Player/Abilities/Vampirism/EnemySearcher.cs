@@ -12,12 +12,19 @@ public class EnemySearcher : MonoBehaviour
     private List<Health> _enemiesInRange = new List<Health>();
 
     public bool HasAnyEnemy => _enemiesInRange.Count > 0;
+    public float SearchRadius => _searchRadius;
 
     private void Awake()
     {
         _searchArea = GetComponent<CircleCollider2D>();
         _searchArea.isTrigger = true;
         _searchArea.radius = _searchRadius;
+    }
+
+    private void Update()
+    {
+        if (_searchArea.radius != _searchRadius)
+            _searchArea.radius = _searchRadius;
     }
 
     public Health GetNearestEnemy()
@@ -44,6 +51,19 @@ public class EnemySearcher : MonoBehaviour
         }
 
         return nearest;
+    }
+
+    public void SetSearchRadius(float newRadius)
+    {
+        _searchRadius = newRadius;
+
+        if (_searchArea != null)
+            _searchArea.radius = newRadius;
+
+        RadiusScaler scaler = GetComponentInChildren<RadiusScaler>();
+
+        if (scaler != null)
+            scaler.UpdateScale(newRadius);
     }
 
     private bool IsEnemy(Collider2D other)

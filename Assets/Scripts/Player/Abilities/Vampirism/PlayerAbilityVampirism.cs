@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerInputReader), typeof(Health), typeof(EnemySearcher))]
@@ -24,6 +25,9 @@ public class PlayerAbilityVampirism : MonoBehaviour
     private Health _playerHealth;
     private EnemySearcher _enemySearcher;
     private WaitForSeconds _tickDelay;
+
+    public event Action AbilityActivated;
+    public event Action AbilityDeactivated;
 
     public bool IsActive => _isActive;
     public bool IsOnCooldown => _isOnCooldown;
@@ -66,6 +70,7 @@ public class PlayerAbilityVampirism : MonoBehaviour
             StopCoroutine(_vampirismCoroutine);
 
         _vampirismCoroutine = StartCoroutine(VampirismCoroutine());
+        AbilityActivated?.Invoke();
     }
 
     public void CancelAbility()
@@ -102,6 +107,7 @@ public class PlayerAbilityVampirism : MonoBehaviour
         _isActive = false;
         _isOnCooldown = true;
         _cooldownTimer = _cooldown;
+        AbilityDeactivated?.Invoke();
 
         Debug.Log($"[Vampirism] Ability ended. Cooldown: {_cooldown} seconds");
     }
