@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Spawners
@@ -17,6 +18,8 @@ namespace Spawners
         private int _currentLives;
         private float _respawnTimer;
         private bool _isRespawning;
+
+        public event Action<Player> PlayerSpawned;
 
         public int CurrentLives => _currentLives;
         public Player CurrentPlayer => _currentPlayer;
@@ -60,6 +63,8 @@ namespace Spawners
             {
                 _cameraFollower.SetTarget(_currentPlayer.transform);
             }
+
+            PlayerSpawned?.Invoke(_currentPlayer);
 
             if (_debugMode)
                 Debug.Log($"[{gameObject.name}] Player spawned. Lives: {_currentLives}");

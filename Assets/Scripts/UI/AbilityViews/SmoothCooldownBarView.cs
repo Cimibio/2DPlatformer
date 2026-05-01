@@ -10,30 +10,9 @@ namespace AbilityView
         private float _currentDisplayValue = 1f;
         private Coroutine _smoothCoroutine;
 
-        private void Update()
-        {
-            UpdateDisplay();
-        }
-
         protected override void UpdateDisplay()
         {
-            if (_ability == null) 
-                return;
-
-            float targetValue;
-
-            if (_ability.IsActive)
-            {
-                targetValue = _ability.ActiveProgress;
-            }
-            else if (_ability.IsOnCooldown)
-            {
-                targetValue = _ability.CooldownProgress;
-            }
-            else
-            {
-                targetValue = 1f;
-            }
+            float targetValue = GetCurrentProgress();
 
             if (Mathf.Abs(_currentDisplayValue - targetValue) > 0.001f)
             {
@@ -64,10 +43,8 @@ namespace AbilityView
             _smoothCoroutine = null;
         }
 
-        protected override void OnDisable()
+        private void OnDisable()
         {
-            base.OnDisable();
-
             if (_smoothCoroutine != null)
             {
                 StopCoroutine(_smoothCoroutine);

@@ -6,8 +6,9 @@ namespace AbilityView
     [RequireComponent(typeof(Slider))]
     public abstract class CooldownBarView : MonoBehaviour
     {
-        [SerializeField] protected PlayerAbilityVampirism _ability;
+        [SerializeField] protected Spawners.PlayerSpawner _playerSpawner;
         protected Slider _slider;
+        protected PlayerAbilityVampirism _currentAbility;
 
         protected virtual void Awake()
         {
@@ -18,11 +19,28 @@ namespace AbilityView
         protected virtual void Start()
         {
             SetInitialValue();
+            FindCurrentPlayerAbility();
         }
 
-        protected virtual void OnDisable()
+        protected virtual void Update()
         {
+            if (_playerSpawner != null && _playerSpawner.CurrentPlayer != null)
+            {
+                var ability = _playerSpawner.CurrentPlayer.GetComponent<PlayerAbilityVampirism>();
 
+                if (ability != _currentAbility)                
+                    _currentAbility = ability;                
+            }
+
+            UpdateDisplay();
+        }
+
+        protected virtual void FindCurrentPlayerAbility()
+        {
+            if (_playerSpawner != null && _playerSpawner.CurrentPlayer != null)
+            {
+                _currentAbility = _playerSpawner.CurrentPlayer.GetComponent<PlayerAbilityVampirism>();
+            }
         }
 
         protected virtual void SetupSlider()
@@ -38,5 +56,18 @@ namespace AbilityView
         }
 
         protected abstract void UpdateDisplay();
+
+        protected float GetCurrentProgress()
+        {
+            if (_currentAbility == null) 
+                return 1f;
+
+            if (_currentAbility.IsActive)
+                return _currentAbility.ActiveProgress;
+            else if (_currentAbility.IsOnCooldown)
+                return _currentAbility.CooldownProgress;
+            else
+                return 1f;
+        }
     }
 }
