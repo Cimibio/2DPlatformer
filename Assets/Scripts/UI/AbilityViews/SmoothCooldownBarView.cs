@@ -5,16 +5,27 @@ namespace AbilityView
 {
     public class SmoothCooldownBarView : CooldownBarView
     {
-        [SerializeField] private float _smoothSpeed = 25f;
+        [SerializeField] private float _smoothSpeed = 50f;
 
         private float _currentDisplayValue = 1f;
         private Coroutine _smoothCoroutine;
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            if (_smoothCoroutine != null)
+            {
+                StopCoroutine(_smoothCoroutine);
+                _smoothCoroutine = null;
+            }
+        }
 
         protected override void UpdateDisplay()
         {
             float targetValue = GetCurrentProgress();
 
-            if (Mathf.Abs(_currentDisplayValue - targetValue) > 0.001f)
+            if (Mathf.Abs(_currentDisplayValue - targetValue) > 0)
             {
                 _currentDisplayValue = targetValue;
 
@@ -27,29 +38,14 @@ namespace AbilityView
 
         private IEnumerator SmoothUpdate()
         {
-            float startValue = _slider.value;
-            float elapsed = 0f;
-            float duration = 1f / _smoothSpeed;
-
-            while (elapsed < duration)
+            while (Mathf.Approximately(_slider.value, _currentDisplayValue) == false)
             {
-                elapsed += Time.deltaTime;
-                float time = elapsed / duration;
-                _slider.value = Mathf.Lerp(startValue, _currentDisplayValue, time);
+                _slider.value = Mathf.MoveTowards(_slider.value, _currentDisplayValue, _smoothSpeed * Time.deltaTime);
                 yield return null;
             }
 
             _slider.value = _currentDisplayValue;
             _smoothCoroutine = null;
-        }
-
-        private void OnDisable()
-        {
-            if (_smoothCoroutine != null)
-            {
-                StopCoroutine(_smoothCoroutine);
-                _smoothCoroutine = null;
-            }
         }
     }
 }
