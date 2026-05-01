@@ -1,46 +1,53 @@
 using UnityEngine;
-using System.Collections;
 
 namespace UI.Views
 {
-    public class SmoothHealthBarView : HealthBarView
+    public class SmoothHealthBarView : SmoothProgressBarView
     {
-        [SerializeField] private float _smoothSpeed = 15f;
+        [SerializeField] protected Health _health;
+        [SerializeField] private bool _normalizeToMax = true;
 
-        private Coroutine _smoothCoroutine;
-        private float _targetValue;
-
-        protected override void UpdateDisplay(float normalizedValue)
+        protected virtual void OnEnable()
         {
-            _targetValue = normalizedValue;
-
-            if (_smoothCoroutine != null)
-                StopCoroutine(_smoothCoroutine);
-
-            _smoothCoroutine = StartCoroutine(SmoothUpdate());
-        }
-
-        private IEnumerator SmoothUpdate()
-        {
-            while (Mathf.Abs(_slider.value - _targetValue) > 0.001f)
+            if (_health != null)
             {
-                _slider.value = Mathf.MoveTowards(_slider.value, _targetValue, _smoothSpeed * Time.deltaTime);
-                yield return null;
+                _health.Changed += ApplyChanges;
+                SetupSlider();
+                SetInitialValue();
             }
-
-            _slider.value = _targetValue;
-            _smoothCoroutine = null;
         }
 
         protected override void OnDisable()
         {
-            base.OnDisable();
+            if (_health != null)
+                _health.Changed -= ApplyChanges;
+        }
 
-            if (_smoothCoroutine != null)
+        protected override void SetupSlider()
+        {
+            if (_normalizeToMax)
             {
-                StopCoroutine(_smoothCoroutine);
-                _smoothCoroutine = null;
+                base.SetupSlider();
             }
+            else
+            {
+                _slider.minValue = 0;
+                _slider.maxValue = _health.Max;
+                _slider.wholeNumbers = false;
+            }
+        }
+
+        protected override void SetInitialValue()
+        {
+            float value = _normalizeToMax ? _health.Current / _health.Max : _health.Current;
+
+            SetProgress(value);
+        }
+
+        private void ApplyChanges(float current, float max)
+        {
+            float normalizedValue = _normalizeToMax ? current / max : current;
+            SetProgress(normalizedValue);
         }
     }
 }

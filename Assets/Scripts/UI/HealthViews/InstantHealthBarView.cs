@@ -1,10 +1,53 @@
+using UnityEngine;
+
 namespace UI.Views
 {
-    public class InstantHealthBarView : HealthBarView
+    public class InstantHealthBarView : InstantProgressBarView
     {
-        protected override void UpdateDisplay(float normalizedValue)
+        [SerializeField] protected Health _health;
+        [SerializeField] private bool _normalizeToMax = true;
+
+        protected virtual void OnEnable()
         {
-            _slider.value = normalizedValue;
+            if (_health != null)
+            {
+                _health.Changed += ApplyChanges;
+                SetupSlider();
+                SetInitialValue();
+            }
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (_health != null)
+                _health.Changed -= ApplyChanges;
+        }
+
+        protected override void SetupSlider()
+        {
+            if (_normalizeToMax)
+            {
+                base.SetupSlider();
+            }
+            else
+            {
+                _slider.minValue = 0;
+                _slider.maxValue = _health.Max;
+                _slider.wholeNumbers = false;
+            }
+        }
+
+        protected override void SetInitialValue()
+        {
+            float value = _normalizeToMax ? _health.Current / _health.Max : _health.Current;
+
+            SetProgress(value);
+        }
+
+        private void ApplyChanges(float current, float max)
+        {
+            float normalizedValue = _normalizeToMax ? current / max : current;
+            SetProgress(normalizedValue);
         }
     }
 }

@@ -1,6 +1,6 @@
 namespace UI.Views
 {
-    public class InstantProgressBarView : ProgressBarView
+    public abstract class InstantProgressBarView : ProgressBarView
     {
         protected override void UpdateDisplay(float normalizedValue)
         {

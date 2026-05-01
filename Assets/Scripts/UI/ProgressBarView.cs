@@ -7,6 +7,7 @@ namespace UI.Views
     public abstract class ProgressBarView : MonoBehaviour
     {
         [SerializeField] protected Slider _slider;
+        [SerializeField] protected float _inititalValue = 1f;
 
         protected virtual void Awake()
         {
@@ -24,13 +25,13 @@ namespace UI.Views
         protected virtual void SetupSlider()
         {
             _slider.minValue = 0;
-            _slider.maxValue = 1;
+            _slider.maxValue = _inititalValue;
             _slider.wholeNumbers = false;
         }
 
         protected virtual void SetInitialValue()
         {
-            _slider.value = 1f;
+            _slider.value = _inititalValue;
         }
 
         protected abstract void UpdateDisplay(float normalizedValue);

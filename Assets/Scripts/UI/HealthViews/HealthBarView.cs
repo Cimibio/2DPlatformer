@@ -11,7 +11,7 @@ namespace UI.Views
         {
             if (_health != null)
             {
-                _health.Changed += OnHealthChanged;
+                _health.Changed += ApplyChanges;
                 SetupSlider();
                 SetInitialValue();
             }
@@ -20,7 +20,7 @@ namespace UI.Views
         protected virtual void OnDisable()
         {
             if (_health != null)
-                _health.Changed -= OnHealthChanged;
+                _health.Changed -= ApplyChanges;
         }
 
         protected override void SetupSlider()
@@ -44,7 +44,7 @@ namespace UI.Views
             SetProgress(value);
         }
 
-        private void OnHealthChanged(float current, float max)
+        private void ApplyChanges(float current, float max)
         {
             float normalizedValue = _normalizeToMax ? current / max : current;
             SetProgress(normalizedValue);

@@ -1,46 +1,80 @@
 using UnityEngine;
-using System.Collections;
 
 namespace UI.Views
 {
-    public class SmoothCooldownBarView : CooldownBarView
+    public class SmoothCooldownBarView : SmoothProgressBarView
     {
-        [SerializeField] private float _smoothSpeed = 25f;
+        [SerializeField] protected Spawners.PlayerSpawner _playerSpawner;
 
-        private Coroutine _smoothCoroutine;
-        private float _targetValue = 1f;
+        protected PlayerAbilityVampirism _currentAbility;
+        protected Player _currentPlayer;
 
-        protected override void UpdateDisplay(float normalizedValue)
+        protected virtual void OnEnable()
         {
-            _targetValue = normalizedValue;
-
-            if (_smoothCoroutine != null)
-                StopCoroutine(_smoothCoroutine);
-
-            _smoothCoroutine = StartCoroutine(SmoothUpdate());
-        }
-
-        private IEnumerator SmoothUpdate()
-        {
-            while (Mathf.Abs(_slider.value - _targetValue) > 0.001f)
-            {
-                _slider.value = Mathf.MoveTowards(_slider.value, _targetValue, _smoothSpeed * Time.deltaTime);
-                yield return null;
-            }
-
-            _slider.value = _targetValue;
-            _smoothCoroutine = null;
+            if (_playerSpawner != null)
+                _playerSpawner.PlayerSpawned += UpdatePlayer;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
 
-            if (_smoothCoroutine != null)
+            if (_playerSpawner != null)
+                _playerSpawner.PlayerSpawned -= UpdatePlayer;
+
+            if (_currentPlayer != null)
+                _currentPlayer.Died -= ResetPlayer;
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+
+            if (_playerSpawner != null && _playerSpawner.CurrentPlayer != null)
+                UpdatePlayer(_playerSpawner.CurrentPlayer);
+        }
+
+        protected virtual void Update()
+        {
+            UpdateCurrentProgress();
+        }
+
+        protected virtual void UpdatePlayer(Player newPlayer)
+        {
+            if (_currentPlayer != null)
+                _currentPlayer.Died -= ResetPlayer;
+
+            _currentPlayer = newPlayer;
+            _currentAbility = newPlayer.GetComponent<PlayerAbilityVampirism>();
+
+            if (_currentPlayer != null)
+                _currentPlayer.Died += ResetPlayer;
+        }
+
+        protected virtual void ResetPlayer()
+        {
+            _currentAbility = null;
+            _currentPlayer = null;
+            SetInitialValue();
+        }
+
+        protected virtual void UpdateCurrentProgress()
+        {
+            if (_currentAbility == null)
             {
-                StopCoroutine(_smoothCoroutine);
-                _smoothCoroutine = null;
+                if (_slider.value != _inititalValue)
+                    SetInitialValue();
+                return;
             }
+
+            float progress = 1f;
+
+            if (_currentAbility.IsActive)
+                progress = _currentAbility.ActiveProgress;
+            else if (_currentAbility.IsOnCooldown)
+                progress = _currentAbility.CooldownProgress;
+
+            SetProgress(progress);
         }
     }
 }
