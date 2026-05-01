@@ -25,6 +25,7 @@ public class PlayerAbilityVampirism : MonoBehaviour
     private Health _playerHealth;
     private EnemySearcher _enemySearcher;
     private WaitForSeconds _tickDelay;
+    private float _activeTime;
 
     public event Action AbilityActivated;
     public event Action AbilityDeactivated;
@@ -34,7 +35,6 @@ public class PlayerAbilityVampirism : MonoBehaviour
     public float CooldownProgress => _isOnCooldown ? 1f - (_cooldownTimer / _cooldown) : 1f;
     public float ActiveProgress => _isActive && _vampirismCoroutine != null ? 1f - (_activeTime / _duration) : 0f;
 
-    private float _activeTime;
 
     private void Awake()
     {

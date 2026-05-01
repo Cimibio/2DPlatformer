@@ -11,9 +11,7 @@ namespace UI.Views
 
         protected virtual void Awake()
         {
-            if (_slider == null)
-                _slider = GetComponent<Slider>();
-
+            _slider = GetComponent<Slider>();
             SetupSlider();
         }
 

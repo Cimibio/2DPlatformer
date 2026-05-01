@@ -45,12 +45,6 @@ public class RadiusScaler : MonoBehaviour
         }
     }
 
-    public void SetRadius(float radius)
-    {
-        _currentRadius = radius;
-        SetScale(radius);
-    }
-
     private void SetScale(float radius)
     {
         if (Mathf.Abs(_lastAppliedRadius - radius) < 0)
