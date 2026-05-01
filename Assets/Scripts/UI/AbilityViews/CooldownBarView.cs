@@ -1,96 +1,83 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace AbilityView
+namespace UI.Views
 {
-    [RequireComponent(typeof(Slider))]
-    public abstract class CooldownBarView : MonoBehaviour
+    public class CooldownBarView : ProgressBarView
     {
         [SerializeField] protected Spawners.PlayerSpawner _playerSpawner;
 
-        protected Slider _slider;
         protected PlayerAbilityVampirism _currentAbility;
         protected Player _currentPlayer;
 
-        private float _initialValue = 1f;
-
-        protected virtual void Awake()
-        {
-            _slider = GetComponent<Slider>();
-            SetupSlider();
-        }
-
-        protected virtual void Start()
-        {
-            SetInitialValue();
-
-            if (_playerSpawner != null && _playerSpawner.CurrentPlayer != null)            
-                SelectPlayer(_playerSpawner.CurrentPlayer);            
-        }
-
         protected virtual void OnEnable()
         {
-            if (_playerSpawner != null)            
-                _playerSpawner.PlayerSpawned += SelectPlayer;            
+            if (_playerSpawner != null)
+                _playerSpawner.PlayerSpawned += OnPlayerSpawned;
         }
 
         protected virtual void OnDisable()
         {
-            if (_playerSpawner != null)            
-                _playerSpawner.PlayerSpawned -= SelectPlayer;            
+            if (_playerSpawner != null)
+                _playerSpawner.PlayerSpawned -= OnPlayerSpawned;
 
-            if (_currentPlayer != null)            
-                _currentPlayer.Died -= ResetPlayer;            
+            if (_currentPlayer != null)
+                _currentPlayer.Died -= OnPlayerDied;
         }
 
-        protected virtual void SelectPlayer(Player newPlayer)
+        protected override void Start()
         {
-            if (_currentPlayer != null)            
-                _currentPlayer.Died -= ResetPlayer;            
+            base.Start();
+
+            if (_playerSpawner != null && _playerSpawner.CurrentPlayer != null)
+                OnPlayerSpawned(_playerSpawner.CurrentPlayer);
+        }
+
+        protected virtual void Update()
+        {
+            UpdateCurrentProgress();
+        }
+
+        protected virtual void OnPlayerSpawned(Player newPlayer)
+        {
+            if (_currentPlayer != null)
+                _currentPlayer.Died -= OnPlayerDied;
 
             _currentPlayer = newPlayer;
+            _currentAbility = newPlayer.GetComponent<PlayerAbilityVampirism>();
 
-            if (newPlayer.TryGetComponent(out PlayerAbilityVampirism vampirism))
-                 _currentAbility = vampirism;
-
-            if (_currentPlayer != null)            
-                _currentPlayer.Died += ResetPlayer;            
-
-            SetInitialValue();
+            if (_currentPlayer != null)
+                _currentPlayer.Died += OnPlayerDied;
         }
 
-        protected virtual void ResetPlayer()
+        protected virtual void OnPlayerDied()
         {
             _currentAbility = null;
             _currentPlayer = null;
-            SetInitialValue();
+            SetProgress(1f);
         }
 
-        protected virtual void SetupSlider()
+        protected virtual void UpdateCurrentProgress()
         {
-            _slider.minValue = 0;
-            _slider.maxValue = 1;
-            _slider.wholeNumbers = false;
-        }
+            if (_currentAbility == null)
+            {
+                if (_slider.value != 1f)
+                    SetProgress(1f);
+                return;
+            }
 
-        protected virtual void SetInitialValue()
-        {
-            _slider.value = _initialValue;
-        }
-
-        protected abstract void UpdateDisplay();
-
-        protected float GetCurrentProgress()
-        {
-            if (_currentAbility == null) 
-                return _initialValue;
+            float progress = 1f;
 
             if (_currentAbility.IsActive)
-                return _currentAbility.ActiveProgress;
+                progress = _currentAbility.ActiveProgress;
             else if (_currentAbility.IsOnCooldown)
-                return _currentAbility.CooldownProgress;
-            else
-                return _initialValue;
+                progress = _currentAbility.CooldownProgress;
+
+            SetProgress(progress);
+        }
+
+        protected override void UpdateDisplay(float normalizedValue)
+        {
+            // Переопределяется в дочерних классах (Instant/Smooth)
         }
     }
 }

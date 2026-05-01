@@ -1,18 +1,17 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace HealthView
+namespace UI.Views
 {
-    public abstract class HealthBarView : MonoBehaviour
+    public class HealthBarView : ProgressBarView
     {
         [SerializeField] protected Health _health;
-        [SerializeField] protected Slider _slider;
+        [SerializeField] private bool _normalizeToMax = true;
 
         protected virtual void OnEnable()
         {
             if (_health != null)
             {
-                _health.Changed += ApplyChanges;
+                _health.Changed += OnHealthChanged;
                 SetupSlider();
                 SetInitialValue();
             }
@@ -21,21 +20,37 @@ namespace HealthView
         protected virtual void OnDisable()
         {
             if (_health != null)
-                _health.Changed -= ApplyChanges;
+                _health.Changed -= OnHealthChanged;
         }
 
-        protected virtual void SetupSlider()
+        protected override void SetupSlider()
         {
-            _slider.minValue = 0;
-            _slider.maxValue = _health.Max;
-            _slider.wholeNumbers = false;
+            if (_normalizeToMax)
+            {
+                base.SetupSlider();
+            }
+            else
+            {
+                _slider.minValue = 0;
+                _slider.maxValue = _health.Max;
+                _slider.wholeNumbers = false;
+            }
         }
 
-        protected virtual void SetInitialValue()
+        protected override void SetInitialValue()
         {
-            _slider.value = _health.Current;
+            float value = _normalizeToMax ? _health.Current / _health.Max : _health.Current;
+
+            SetProgress(value);
         }
 
-        protected abstract void ApplyChanges(float current, float max);
+        private void OnHealthChanged(float current, float max)
+        {
+            float normalizedValue = _normalizeToMax ? current / max : current;
+            SetProgress(normalizedValue);
+        }
+
+        protected override void UpdateDisplay(float normalizedValue)
+        { }
     }
 }

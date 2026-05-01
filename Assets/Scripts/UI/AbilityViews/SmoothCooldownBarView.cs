@@ -1,14 +1,36 @@
-using System.Collections;
 using UnityEngine;
+using System.Collections;
 
-namespace AbilityView
+namespace UI.Views
 {
     public class SmoothCooldownBarView : CooldownBarView
     {
-        [SerializeField] private float _smoothSpeed = 50f;
+        [SerializeField] private float _smoothSpeed = 25f;
 
-        private float _currentDisplayValue = 1f;
         private Coroutine _smoothCoroutine;
+        private float _targetValue = 1f;
+
+        protected override void UpdateDisplay(float normalizedValue)
+        {
+            _targetValue = normalizedValue;
+
+            if (_smoothCoroutine != null)
+                StopCoroutine(_smoothCoroutine);
+
+            _smoothCoroutine = StartCoroutine(SmoothUpdate());
+        }
+
+        private IEnumerator SmoothUpdate()
+        {
+            while (Mathf.Abs(_slider.value - _targetValue) > 0.001f)
+            {
+                _slider.value = Mathf.MoveTowards(_slider.value, _targetValue, _smoothSpeed * Time.deltaTime);
+                yield return null;
+            }
+
+            _slider.value = _targetValue;
+            _smoothCoroutine = null;
+        }
 
         protected override void OnDisable()
         {
@@ -19,33 +41,6 @@ namespace AbilityView
                 StopCoroutine(_smoothCoroutine);
                 _smoothCoroutine = null;
             }
-        }
-
-        protected override void UpdateDisplay()
-        {
-            float targetValue = GetCurrentProgress();
-
-            if (Mathf.Abs(_currentDisplayValue - targetValue) > 0)
-            {
-                _currentDisplayValue = targetValue;
-
-                if (_smoothCoroutine != null)
-                    StopCoroutine(_smoothCoroutine);
-
-                _smoothCoroutine = StartCoroutine(SmoothUpdate());
-            }
-        }
-
-        private IEnumerator SmoothUpdate()
-        {
-            while (Mathf.Approximately(_slider.value, _currentDisplayValue) == false)
-            {
-                _slider.value = Mathf.MoveTowards(_slider.value, _currentDisplayValue, _smoothSpeed * Time.deltaTime);
-                yield return null;
-            }
-
-            _slider.value = _currentDisplayValue;
-            _smoothCoroutine = null;
         }
     }
 }
