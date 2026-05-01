@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 4036690229011756675}
   - component: {fileID: 1850899286113339218}
   - component: {fileID: 4171054722470391726}
+  - component: {fileID: 3966654230644107061}
   m_Layer: 7
-  m_Name: VampirismRadiusVisualizer
+  m_Name: VampirismAbilityEffects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -99,10 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e9b0b518bfebd243b12f4a76cdbf7d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enemySearcher: {fileID: 6392526045644607031}
-  _idleColor: {r: 1, g: 1, b: 1, a: 0.1}
-  _activeColor: {r: 1, g: 0.2, b: 0.2, a: 0.3}
-  _autoUpdateScale: 1
+  _enemySearcher: {fileID: 759198136375053468}
 --- !u!114 &1850899286113339218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,13 +113,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74b5ceb39c81d4549adee3db0b3ee1c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ability: {fileID: -6237077857802971589}
+  _spritePulser: {fileID: 3966654230644107061}
   _radiusVisualizer: {fileID: 4036690229011756675}
-  _enemySearcher: {fileID: 6392526045644607031}
-  _showOnIdle: 1
-  _showOnActive: 1
-  _showOnlyWhenEnemiesInRange: 1
+  _ability: {fileID: 4491966605787944401}
+  _enemySearcher: {fileID: 759198136375053468}
   _fadeSpeed: 2
+  _colorWithEnemies: {r: 1, g: 0.2, b: 0.2, a: 1}
+  _colorWithoutEnemies: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &4171054722470391726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,11 +132,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93875ef1f395d9c41ae0ef0e80aa9b1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enemySearcher: {fileID: 6392526045644607031}
+  _enemySearcher: {fileID: 759198136375053468}
   _radiusVisualizer: {fileID: 4036690229011756675}
-  _scaleOnStart: 1
-  _scaleOnRadiusChange: 1
+  _scaleOnUpdate: 1
   _scaleMultiplier: 2
+--- !u!114 &3966654230644107061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138674975487712231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1532135c371cff04385fa993f6ccd367, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _frequency: 2
+  _minAlpha: 0.5
+  _maxAlpha: 1
+  _pulseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2151079634999394895
 GameObject:
   m_ObjectHideFlags: 0
@@ -159,9 +195,9 @@ GameObject:
   - component: {fileID: 8246649333133607461}
   - component: {fileID: 8309699003380051039}
   - component: {fileID: 8718251026883253866}
-  - component: {fileID: -4347058849701259022}
-  - component: {fileID: 6392526045644607031}
-  - component: {fileID: -6237077857802971589}
+  - component: {fileID: 5487171057600233790}
+  - component: {fileID: 759198136375053468}
+  - component: {fileID: 4491966605787944401}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -424,7 +460,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxValue: 100
   _currentValue: 100
---- !u!58 &-4347058849701259022
+--- !u!58 &5487171057600233790
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -458,8 +494,8 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.64
---- !u!114 &6392526045644607031
+  m_Radius: 2
+--- !u!114 &759198136375053468
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -474,9 +510,9 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 512
-  _searchRadius: 2
+  _searchRadius: 1
   _debugMode: 1
---- !u!114 &-6237077857802971589
+--- !u!114 &4491966605787944401
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -492,7 +528,7 @@ MonoBehaviour:
   _cooldown: 4
   _damagePerSecond: 5
   _healPerSecond: 4
-  _ticksPerSecond: 5
+  _ticksPerSecond: 10
 --- !u!1 &3238995985041155716
 GameObject:
   m_ObjectHideFlags: 0

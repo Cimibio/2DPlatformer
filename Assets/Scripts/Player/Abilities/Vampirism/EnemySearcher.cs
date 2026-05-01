@@ -53,19 +53,6 @@ public class EnemySearcher : MonoBehaviour
         return nearest;
     }
 
-    public void SetSearchRadius(float newRadius)
-    {
-        _searchRadius = newRadius;
-
-        if (_searchArea != null)
-            _searchArea.radius = newRadius;
-
-        RadiusScaler scaler = GetComponentInChildren<RadiusScaler>();
-
-        if (scaler != null)
-            scaler.UpdateScale(newRadius);
-    }
-
     private bool IsEnemy(Collider2D other)
     {
         return (_enemyLayer.value & (1 << other.gameObject.layer)) != 0;

@@ -7,7 +7,6 @@ public class RadiusScaler : MonoBehaviour
     [SerializeField] private RadiusVisualizer _radiusVisualizer;
 
     [Header("Scale Settings")]
-    [SerializeField] private bool _scaleOnStart = true;
     [SerializeField] private bool _scaleOnUpdate = true;
     [SerializeField] private float _scaleMultiplier = 2f;
 
@@ -25,10 +24,10 @@ public class RadiusScaler : MonoBehaviour
 
     private void Start()
     {
-        if (_scaleOnStart && _enemySearcher != null)
+        if (_enemySearcher != null)
         {
             _currentRadius = _enemySearcher.SearchRadius;
-            ApplyScale(_currentRadius);
+            SetScale(_currentRadius);
         }
     }
 
@@ -39,52 +38,30 @@ public class RadiusScaler : MonoBehaviour
 
         float currentRadius = _enemySearcher.SearchRadius;
 
-        // Если радиус изменился
-        if (Mathf.Abs(currentRadius - _currentRadius) > 0.001f)
+        if (Mathf.Abs(currentRadius - _currentRadius) > 0)
         {
             _currentRadius = currentRadius;
-            ApplyScale(_currentRadius);
+            SetScale(_currentRadius);
         }
     }
 
-    public void UpdateScale(float radius)
+    public void SetRadius(float radius)
     {
         _currentRadius = radius;
-        ApplyScale(radius);
+        SetScale(radius);
     }
 
-    private void ApplyScale(float radius)
+    private void SetScale(float radius)
     {
-        // Проверяем, не применяли ли уже такой же масштаб
-        if (Mathf.Abs(_lastAppliedRadius - radius) < 0.001f)
+        if (Mathf.Abs(_lastAppliedRadius - radius) < 0)
             return;
 
         _lastAppliedRadius = radius;
         float scale = radius * _scaleMultiplier;
 
-        if (_radiusVisualizer != null)
-        {
-            _radiusVisualizer.UpdateScale(radius);
-        }
-        else
-        {
-            transform.localScale = new Vector3(scale, scale, 1f);
-        }
-
-        Debug.Log($"[RadiusScaler] Scale applied: radius={radius}, scale={scale}");
-    }
-
-    public void SetScaleMultiplier(float multiplier)
-    {
-        _scaleMultiplier = multiplier;
-        ApplyScale(_currentRadius);
-    }
-
-    private void OnValidate()
-    {
-        if (_enemySearcher != null && Application.isPlaying == false)
-        {
-            ApplyScale(_enemySearcher.SearchRadius);
-        }
+        if (_radiusVisualizer != null)        
+            _radiusVisualizer.SetScale(radius);        
+        else        
+            transform.localScale = new Vector3(scale, scale, 1f);        
     }
 }

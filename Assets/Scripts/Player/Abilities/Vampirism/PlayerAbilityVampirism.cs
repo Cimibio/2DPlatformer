@@ -64,7 +64,6 @@ public class PlayerAbilityVampirism : MonoBehaviour
     {
         _isActive = true;
         _activeTime = 0f;
-        Debug.Log($"[Vampirism] Ability activated! Duration: {_duration} seconds");
 
         if (_vampirismCoroutine != null)
             StopCoroutine(_vampirismCoroutine);
@@ -75,11 +74,8 @@ public class PlayerAbilityVampirism : MonoBehaviour
 
     public void CancelAbility()
     {
-        if (_isActive)
-        {
-            EndAbility();
-            Debug.Log("[Vampirism] Ability cancelled!");
-        }
+        if (_isActive)        
+            EndAbility();        
     }
 
     private void UpdateCooldown()
@@ -88,11 +84,8 @@ public class PlayerAbilityVampirism : MonoBehaviour
         {
             _cooldownTimer -= Time.deltaTime;
 
-            if (_cooldownTimer <= 0f)
-            {
-                _isOnCooldown = false;
-                Debug.Log("[Vampirism] Cooldown finished! Ability ready.");
-            }
+            if (_cooldownTimer <= 0f)            
+                _isOnCooldown = false;            
         }
     }
 
